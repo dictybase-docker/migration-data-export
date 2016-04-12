@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -9,6 +10,15 @@ import (
 	"gopkg.in/codegangsta/cli.v1"
 	"gopkg.in/yaml.v1"
 )
+
+func ValidateCleanUpArgs(c *cli.Context) error {
+	for _, p := range []string{"db-name", "output", "input"} {
+		if !c.IsSet(p) {
+			return fmt.Errorf("error: argument %s in required !!!!\n", p)
+		}
+	}
+	return nil
+}
 
 func ValidateMultiArgs(c *cli.Context) bool {
 	if c.Generic("muser") == nil {

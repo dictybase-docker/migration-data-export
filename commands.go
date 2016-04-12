@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -17,6 +19,7 @@ import (
 )
 
 var ur = regexp.MustCompile("-")
+var dbRgxp = regexp.MustCompile("Dbxref")
 
 func CanonicalGFF3Action(c *cli.Context) {
 	if !ValidateArgs(c) {
@@ -443,4 +446,42 @@ func RunLiteraturePipeCmd(fopt map[string]string, sopt map[string]string, fscmd 
 		return
 	}
 	fmt.Println("finished both commands succesfully")
+}
+
+func DbxrefCleanUpAction(c *cli.Context) {
+	if err := ValidateCleanUpArgs(c); err != nil {
+		log.Fatal(err)
+	}
+	nRgxp, err := regexp.Compile(c.String("db-name") + `:\w+`)
+	if err != nil {
+		log.Fatalln("error in creating regexp for db name")
+	}
+	in, err := os.Open(c.String("input"))
+	if err != nil {
+		log.Fatalf("error in opening file %s\n", err)
+	}
+	defer in.Close()
+	out, err := os.Create(c.String("output"))
+	if err != nil {
+		log.Fatalf("error in writing file %s\n", err)
+	}
+	defer out.Close()
+
+	r := bufio.NewReader(in)
+	for {
+		line, err := r.ReadString('\n')
+		if err == io.EOF {
+			break
+		} else {
+			log.Fatalln(err)
+		}
+		if dbRgxp.MatchString(line) {
+			gff3Slice := strings.Split(line, "\t")
+			clnStr := nRgxp.ReplaceAllString(gff3Slice[8], "")
+			gff3Slice[8] = clnStr
+			fmt.Fprintf(out, "%s", strings.Join(gff3Slice, "\t"))
+		} else {
+			fmt.Fprintf(out, "%s", line)
+		}
+	}
 }

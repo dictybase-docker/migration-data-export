@@ -241,6 +241,25 @@ func main() {
 				},
 			},
 		},
+		{
+			Name:  "clean-dbxref",
+			Usage: "Remove dbxref attribute(s) from gff3 file",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "output, o",
+					Usage: "Name of output gff3 file, required",
+				},
+				cli.StringFlag{
+					Name:  "input, i",
+					Usage: "Name of the input gff3 file, required",
+				},
+				cli.StringFlag{
+					Name:  "n, db-name",
+					Usage: "database name which will be removed along with the accession/id",
+				},
+			},
+			Action: DbxrefCleanUpAction,
+		},
 	}
 	app.Run(os.Args)
 }
