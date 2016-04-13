@@ -510,6 +510,7 @@ func SplitPolypeptideAction(c *cli.Context) {
 	}
 	defer pr.Close()
 	r := bufio.NewReader(in)
+	fmt.Fprintf(pr, "##%s\t3\n", "gff-version")
 	seenFasta := false
 	for {
 		line, err := r.ReadString('\n')
