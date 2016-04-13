@@ -470,10 +470,13 @@ func DbxrefCleanUpAction(c *cli.Context) {
 	r := bufio.NewReader(in)
 	for {
 		line, err := r.ReadString('\n')
-		if err == io.EOF {
-			break
-		} else {
-			log.Fatalln(err)
+		if err != nil {
+			if err == io.EOF {
+				break
+			} else {
+				log.Fatalf("error in reading file %s\n", err)
+			}
+
 		}
 		if dbRgxp.MatchString(line) {
 			gff3Slice := strings.Split(line, "\t")
@@ -509,10 +512,13 @@ func SplitPolypeptideAction(c *cli.Context) {
 	r := bufio.NewReader(in)
 	for {
 		line, err := r.ReadString('\n')
-		if err == io.EOF {
-			break
-		} else {
-			log.Fatalf("error in reading file %s\n", err)
+		if err != nil {
+			if err == io.EOF {
+				break
+			} else {
+				log.Fatalf("error in reading file %s\n", err)
+			}
+
 		}
 		t := strings.Split(line, "\t")[2]
 		if t == "polypeptide" {
