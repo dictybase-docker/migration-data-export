@@ -11,6 +11,13 @@ import (
 	"gopkg.in/yaml.v1"
 )
 
+func ValidatePolypetideArgs(c *cli.Context) error {
+	if !c.IsSet("input") {
+		return fmt.Errorf("error argument %s in required !!!!", "input")
+	}
+	return nil
+}
+
 func ValidateCleanUpArgs(c *cli.Context) error {
 	for _, p := range []string{"db-name", "output", "input"} {
 		if !c.IsSet(p) {

@@ -260,6 +260,17 @@ func main() {
 			},
 			Action: DbxrefCleanUpAction,
 		},
+		{
+			Name:  "split-polypeptide",
+			Usage: "Split polypeptide features to a separate file",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "input, i",
+					Usage: "Name of the input gff3 file, required",
+				},
+			},
+			Action: SplitPolypeptideAction,
+		},
 	}
 	app.Run(os.Args)
 }

@@ -485,3 +485,47 @@ func DbxrefCleanUpAction(c *cli.Context) {
 		}
 	}
 }
+
+func SplitPolypeptideAction(c *cli.Context) {
+	if err := ValidatePolypetideArgs(c); err != nil {
+		log.Fatal(err)
+	}
+	in, err := os.Open(c.String("input"))
+	if err != nil {
+		log.Fatalf("error in opening file %s: %s\n", c.String("input"), err)
+	}
+	defer in.Close()
+	genome, poly := MakeOutputName(c.String("input"))
+	gr, err := os.Create(genome)
+	if err != nil {
+		log.Fatalf("error in opening %s file for writing %s\n", genome, err)
+	}
+	defer gr.Close()
+	pr, err := os.Create(poly)
+	if err != nil {
+		log.Fatalf("error in opening %s file for writing %s\n", poly, err)
+	}
+	defer pr.Close()
+	r := bufio.NewReader(in)
+	for {
+		line, err := r.ReadString('\n')
+		if err == io.EOF {
+			break
+		} else {
+			log.Fatalf("error in reading file %s\n", err)
+		}
+		t := strings.Split(line, "\t")[2]
+		if t == "polypeptide" {
+			fmt.Fprint(pr, line)
+		} else {
+			fmt.Fprint(gr, line)
+		}
+	}
+}
+
+func MakeOutputName(path string) (string, string) {
+	prefix := strings.Split(filepath.Base(path), ".")[0]
+	dir := filepath.Dir(path)
+	return filepath.Join(dir, fmt.Sprintf("%s_no_poly.gff3", prefix)),
+		filepath.Join(dir, fmt.Sprintf("%s_poly.gff3", prefix))
+}
