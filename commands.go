@@ -510,6 +510,7 @@ func SplitPolypeptideAction(c *cli.Context) {
 	}
 	defer pr.Close()
 	r := bufio.NewReader(in)
+	seenFasta := false
 	for {
 		line, err := r.ReadString('\n')
 		if err != nil {
@@ -518,15 +519,29 @@ func SplitPolypeptideAction(c *cli.Context) {
 			} else {
 				log.Fatalf("error in reading file %s\n", err)
 			}
-
 		}
-		t := strings.Split(line, "\t")
-		if t[2] == "polypeptide" {
+		switch {
+		case seenFasta:
+			fmt.Fprint(gr, line)
+		case strings.HasPrefix(line, "###"):
+			fmt.Fprint(gr, line)
+			seenFasta = true
+		case strings.HasPrefix(line, "##"):
+			fmt.Fprint(gr, line)
+		case isPolyPeptide(line):
 			fmt.Fprint(pr, line)
-		} else {
+		default:
 			fmt.Fprint(gr, line)
 		}
 	}
+}
+
+func isPolyPeptide(line string) bool {
+	t := strings.Split(line, "\t")
+	if t[2] == "polypeptide" {
+		return true
+	}
+	return false
 }
 
 func MakeOutputName(path string) (string, string) {
