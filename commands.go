@@ -520,8 +520,8 @@ func SplitPolypeptideAction(c *cli.Context) {
 			}
 
 		}
-		t := strings.Split(line, "\t")[2]
-		if t == "polypeptide" {
+		t := strings.Split(line, "\t")
+		if t[2] == "polypeptide" {
 			fmt.Fprint(pr, line)
 		} else {
 			fmt.Fprint(gr, line)
