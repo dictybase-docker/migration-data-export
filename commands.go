@@ -19,7 +19,7 @@ import (
 )
 
 var ur = regexp.MustCompile("-")
-var dbRgxp = regexp.MustCompile("Dbxref")
+var dbRgxp = regexp.MustCompile(`Dbxref=(.+)(;)?`)
 
 func CanonicalGFF3Action(c *cli.Context) {
 	if !ValidateArgs(c) {
@@ -452,10 +452,6 @@ func DbxrefCleanUpAction(c *cli.Context) {
 	if err := ValidateCleanUpArgs(c); err != nil {
 		log.Fatal(err)
 	}
-	nRgxp, err := regexp.Compile(c.String("db-name") + `:\w+`)
-	if err != nil {
-		log.Fatalln("error in creating regexp for db name")
-	}
 	in, err := os.Open(c.String("input"))
 	if err != nil {
 		log.Fatalf("error in opening file %s\n", err)
@@ -478,15 +474,46 @@ func DbxrefCleanUpAction(c *cli.Context) {
 			}
 
 		}
-		if dbRgxp.MatchString(line) {
+		if strings.Contains(line, "Dbxref") {
 			gff3Slice := strings.Split(line, "\t")
-			clnStr := nRgxp.ReplaceAllString(gff3Slice[8], "")
-			gff3Slice[8] = clnStr
+			nonxref, dbxref := splitDbxref(gff3Slice[8])
+			gff3Slice[8] = fmt.Sprintf("%s%s", nonxref, replaceDbxref(dbxref, c.String("name")))
 			fmt.Fprintf(out, "%s", strings.Join(gff3Slice, "\t"))
 		} else {
-			fmt.Fprintf(out, "%s", line)
+			out.WriteString(line)
 		}
 	}
+}
+
+func splitDbxref(attr string) (string, string) {
+	var nonxref bytes.Buffer
+	var dbxref bytes.Buffer
+	for _, s := range strings.Split(attr, ";") {
+		if strings.HasPrefix(s, "Dbxref") {
+			_, _ = dbxref.WriteString(s)
+			continue
+		}
+		_, _ = nonxref.WriteString(s + ";")
+	}
+	return nonxref.String(), dbxref.String()
+}
+
+func replaceDbxref(dbxref string, db string) (nxref string) {
+	if !strings.Contains(dbxref, db) {
+		return nxref
+	}
+	sm := dbRgxp.FindStringSubmatch(dbxref)
+	if sm == nil {
+		return nxref
+	}
+	var fDbxref []string
+	for _, xref := range strings.Split(sm[1], ",") {
+		if !strings.HasPrefix(xref, db) {
+			fDbxref = append(fDbxref, xref)
+		}
+	}
+	nxref = fmt.Sprintf("Dbxref=%s", strings.Join(fDbxref, ","))
+	return nxref
 }
 
 func SplitPolypeptideAction(c *cli.Context) {
