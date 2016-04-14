@@ -478,7 +478,7 @@ func DbxrefCleanUpAction(c *cli.Context) {
 			gff3Slice := strings.Split(line, "\t")
 			nonxref, dbxref := splitDbxref(gff3Slice[8])
 			gff3Slice[8] = fmt.Sprintf("%s%s", nonxref, replaceDbxref(dbxref, c.String("name")))
-			fmt.Fprintf(out, "%s", strings.Join(gff3Slice, "\t"))
+			fmt.Fprintf(out, "%s\n", strings.Join(gff3Slice, "\t"))
 		} else {
 			out.WriteString(line)
 		}
