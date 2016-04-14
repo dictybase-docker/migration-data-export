@@ -512,6 +512,7 @@ func replaceDbxref(dbxref string, db string) (nxref string) {
 			fDbxref = append(fDbxref, xref)
 		}
 	}
+	fmt.Println(fDbxref)
 	nxref = fmt.Sprintf("Dbxref=%s", strings.Join(fDbxref, ","))
 	return nxref
 }
