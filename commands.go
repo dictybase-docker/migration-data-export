@@ -477,7 +477,12 @@ func DbxrefCleanUpAction(c *cli.Context) {
 		if strings.Contains(line, "Dbxref") {
 			gff3Slice := strings.Split(line, "\t")
 			nonxref, dbxref := splitDbxref(gff3Slice[8])
-			gff3Slice[8] = fmt.Sprintf("%s%s", nonxref, replaceDbxref(dbxref, c.String("name")))
+			cdbxref := replaceDbxref(dbxref, c.String("name"))
+			if len(cdbxref) == 0 {
+				gff3Slice[8] = fmt.Sprintf("%s", nonxref)
+			} else {
+				gff3Slice[8] = fmt.Sprintf("%s%s", nonxref, cdbxref)
+			}
 			fmt.Fprintf(out, "%s\n", strings.Join(gff3Slice, "\t"))
 		} else {
 			out.WriteString(line)
@@ -490,10 +495,10 @@ func splitDbxref(attr string) (string, string) {
 	var dbxref bytes.Buffer
 	for _, s := range strings.Split(attr, ";") {
 		if strings.HasPrefix(s, "Dbxref") {
-			_, _ = dbxref.WriteString(s)
+			dbxref.WriteString(s)
 			continue
 		}
-		_, _ = nonxref.WriteString(s + ";")
+		nonxref.WriteString(s + ";")
 	}
 	return nonxref.String(), dbxref.String()
 }
@@ -512,8 +517,10 @@ func replaceDbxref(dbxref string, db string) (nxref string) {
 			fDbxref = append(fDbxref, xref)
 		}
 	}
-	fmt.Println(fDbxref)
-	nxref = fmt.Sprintf("Dbxref=%s", strings.Join(fDbxref, ","))
+	if len(fDbxref) == 0 {
+		return nxref
+	}
+	nxref = fmt.Sprintf("Dbxref=%s", strings.TrimSuffix(strings.Join(fDbxref, ","), "\n"))
 	return nxref
 }
 
