@@ -477,9 +477,9 @@ func DbxrefCleanUpAction(c *cli.Context) {
 		if strings.Contains(line, "Dbxref") {
 			gff3Slice := strings.Split(line, "\t")
 			nonxref, dbxref := splitDbxref(gff3Slice[8])
-			cdbxref := replaceDbxref(dbxref, c.String("name"))
+			cdbxref := replaceDbxref(dbxref, c.String("db-name"))
 			if len(cdbxref) == 0 {
-				gff3Slice[8] = fmt.Sprintf("%s", nonxref)
+				gff3Slice[8] = strings.TrimSuffix(nonxref, ";")
 			} else {
 				gff3Slice[8] = fmt.Sprintf("%s%s", nonxref, cdbxref)
 			}
@@ -498,18 +498,18 @@ func splitDbxref(attr string) (string, string) {
 			dbxref.WriteString(s)
 			continue
 		}
-		nonxref.WriteString(s + ";")
+		nonxref.WriteString(strings.TrimSuffix(s, "\n") + ";")
 	}
 	return nonxref.String(), dbxref.String()
 }
 
-func replaceDbxref(dbxref string, db string) (nxref string) {
+func replaceDbxref(dbxref string, db string) string {
 	if !strings.Contains(dbxref, db) {
-		return nxref
+		return dbxref
 	}
 	sm := dbRgxp.FindStringSubmatch(dbxref)
 	if sm == nil {
-		return nxref
+		return ""
 	}
 	var fDbxref []string
 	for _, xref := range strings.Split(sm[1], ",") {
@@ -518,10 +518,9 @@ func replaceDbxref(dbxref string, db string) (nxref string) {
 		}
 	}
 	if len(fDbxref) == 0 {
-		return nxref
+		return ""
 	}
-	nxref = fmt.Sprintf("Dbxref=%s", strings.TrimSuffix(strings.Join(fDbxref, ","), "\n"))
-	return nxref
+	return fmt.Sprintf("Dbxref=%s", strings.TrimSuffix(strings.Join(fDbxref, ","), "\n"))
 }
 
 func SplitPolypeptideAction(c *cli.Context) {
