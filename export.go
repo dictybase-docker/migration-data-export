@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"gopkg.in/codegangsta/cli.v1"
+	"github.com/codegangsta/cli"
 )
 
 func main() {
@@ -253,7 +253,7 @@ func main() {
 					Name:  "input, i",
 					Usage: "Name of the input gff3 file, required",
 				},
-				cli.StringFlag{
+				cli.StringSliceFlag{
 					Name:  "n, db-name",
 					Usage: "database name which will be removed along with the accession/id",
 				},

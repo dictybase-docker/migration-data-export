@@ -6,7 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"gopkg.in/codegangsta/cli.v1"
+	"github.com/codegangsta/cli"
+
 	"gopkg.in/yaml.v1"
 )
 

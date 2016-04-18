@@ -7,7 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"gopkg.in/codegangsta/cli.v1"
+	"github.com/codegangsta/cli"
+
 	"gopkg.in/yaml.v1"
 )
 
@@ -19,11 +20,14 @@ func ValidatePolypetideArgs(c *cli.Context) error {
 }
 
 func ValidateCleanUpArgs(c *cli.Context) error {
-	for _, p := range []string{"db-name", "output", "input"} {
+	for _, p := range []string{"output", "input"} {
 		if !c.IsSet(p) {
 			return fmt.Errorf("error: argument %s in required !!!!\n", p)
 		}
 	}
+	//if len(c.String("db-name")) == 0 {
+	//return fmt.Errorf("error: argument %s in required !!!!\n", "db-name")
+	//}
 	return nil
 }
 

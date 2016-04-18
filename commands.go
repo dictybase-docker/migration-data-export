@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"gopkg.in/codegangsta/cli.v1"
+	"github.com/codegangsta/cli"
 )
 
 var ur = regexp.MustCompile("-")
@@ -477,7 +477,7 @@ func DbxrefCleanUpAction(c *cli.Context) {
 		if strings.Contains(line, "Dbxref") {
 			gff3Slice := strings.Split(line, "\t")
 			nonxref, dbxref := splitDbxref(gff3Slice[8])
-			cdbxref := replaceDbxref(dbxref, c.String("db-name"))
+			cdbxref := replaceDbxref(dbxref, c.StringSlice("db-name"))
 			if len(cdbxref) == 0 {
 				gff3Slice[8] = strings.TrimSuffix(nonxref, ";")
 			} else {
@@ -503,17 +503,36 @@ func splitDbxref(attr string) (string, string) {
 	return nonxref.String(), dbxref.String()
 }
 
-func replaceDbxref(dbxref string, db string) string {
-	if !strings.Contains(dbxref, db) {
+func hasDb(dbxref string, db []string) bool {
+	for _, n := range db {
+		if strings.Contains(dbxref, n) {
+			return true
+		}
+	}
+	return false
+}
+
+func hasDbPrefix(dbxref string, db []string) bool {
+	for _, n := range db {
+		if strings.HasPrefix(dbxref, n) {
+			return true
+		}
+	}
+	return false
+}
+
+func replaceDbxref(dbxref string, db []string) string {
+	if !hasDb(dbxref, db) {
 		return dbxref
 	}
+
 	sm := dbRgxp.FindStringSubmatch(dbxref)
 	if sm == nil {
 		return ""
 	}
 	var fDbxref []string
 	for _, xref := range strings.Split(sm[1], ",") {
-		if !strings.HasPrefix(xref, db) {
+		if !hasDbPrefix(xref, db) {
 			fDbxref = append(fDbxref, xref)
 		}
 	}
