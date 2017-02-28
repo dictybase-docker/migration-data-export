@@ -15,18 +15,18 @@ import (
 	"sync"
 	"time"
 
-	"github.com/codegangsta/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 var ur = regexp.MustCompile("-")
 var dbRgxp = regexp.MustCompile(`Dbxref=(.+)(;)?`)
 
-func CanonicalGFF3Action(c *cli.Context) {
+func CanonicalGFF3Action(c *cli.Context) error {
 	if !ValidateArgs(c) {
-		log.Fatal("one or more of required arguments are not provided")
+		return cli.NewExitError("one or more of required arguments are not provided", 2)
 	}
 	if !ValidateMultiArgs(c) {
-		log.Fatal("one or more of required arguments are not provided")
+		return cli.NewExitError("one or more of required arguments are not provided", 2)
 	}
 	// create config folder if not exists
 	CreateRequiredFolder(c.String("config-folder"))
@@ -90,13 +90,13 @@ func CanonicalGFF3Action(c *cli.Context) {
 			log.Printf("\nfinished the %s\n succesfully", string(r))
 			count++
 			if count > 6 {
-				return
+				return nil
 			}
 		case err := <-errChan:
 			log.Printf("\nError %s in running command\n", err)
 			count++
 			if count > 6 {
-				return
+				return nil
 			}
 		default:
 			time.Sleep(1000 * time.Millisecond)
@@ -104,11 +104,12 @@ func CanonicalGFF3Action(c *cli.Context) {
 			fmt.Printf("\r%d:%d:%d\t", int(elapsed.Hours()), int(elapsed.Minutes()), int(elapsed.Seconds()))
 		}
 	}
+	return nil
 }
 
-func ExtraGFF3Action(c *cli.Context) {
+func ExtraGFF3Action(c *cli.Context) error {
 	if !ValidateArgs(c) {
-		log.Fatal("one or more of required arguments are not provided")
+		return cli.NewExitError("one or more of required arguments are not provided", 2)
 	}
 	// create config folder if not exists
 	CreateRequiredFolder(c.String("config-folder"))
@@ -144,13 +145,13 @@ func ExtraGFF3Action(c *cli.Context) {
 			log.Printf("\nfinished the %s\n succesfully", string(r))
 			count++
 			if count > 7 {
-				return
+				return nil
 			}
 		case err := <-errChan:
 			log.Printf("\nError %s in running command\n", err)
 			count++
 			if count > 7 {
-				return
+				return nil
 			}
 		default:
 			time.Sleep(100 * time.Millisecond)
@@ -158,14 +159,15 @@ func ExtraGFF3Action(c *cli.Context) {
 			//fmt.Printf("\r%d:%d:%d\t", int(elapsed.Hours()), int(elapsed.Minutes()), int(elapsed.Seconds()))
 		}
 	}
+	return nil
 }
 
-func StockCenterAction(c *cli.Context) {
+func StockCenterAction(c *cli.Context) error {
 	if !ValidateArgs(c) {
-		log.Fatal("one or more of required arguments are not provided")
+		return cli.NewExitError("one or more of required arguments are not provided", 2)
 	}
 	if !ValidateExtraArgs(c) {
-		log.Fatal("one or more of required arguments are not provided")
+		return cli.NewExitError("one or more of required arguments are not provided", 2)
 	}
 	CreateRequiredFolder(c.String("config-folder"))
 	CreateRequiredFolder(c.String("output-folder"))
@@ -188,13 +190,13 @@ func StockCenterAction(c *cli.Context) {
 			log.Printf("\nfinished the %s\n succesfully", string(r))
 			count++
 			if count > 2 {
-				return
+				return nil
 			}
 		case err := <-errChan:
 			log.Printf("\nError %s in running command\n", err)
 			count++
 			if count > 2 {
-				return
+				return nil
 			}
 		default:
 			time.Sleep(100 * time.Millisecond)
@@ -202,11 +204,12 @@ func StockCenterAction(c *cli.Context) {
 			//fmt.Printf("\r%d:%d:%d\t", int(elapsed.Hours()), int(elapsed.Minutes()), int(elapsed.Seconds()))
 		}
 	}
+	return nil
 }
 
-func LiteratureAction(c *cli.Context) {
+func LiteratureAction(c *cli.Context) error {
 	if !ValidateArgs(c) {
-		log.Fatal("one or more of required arguments are not provided")
+		return cli.NewExitError("one or more of required arguments are not provided", 2)
 	}
 	// create config folder if not exists
 	for _, f := range []string{
@@ -247,11 +250,12 @@ func LiteratureAction(c *cli.Context) {
 	go RunLiteratureExportCmd(aconf, "dictypubannotation", wg)
 	wg.Wait()
 	RunLiteratureUpdateCmd(dconf, "dictybib")
+	return nil
 }
 
-func GeneAnnoAction(c *cli.Context) {
+func GeneAnnoAction(c *cli.Context) error {
 	if !ValidateExtraArgs(c) {
-		log.Fatal("one or more of required arguments are not provided")
+		return cli.NewExitError("one or more of required arguments are not provided", 2)
 	}
 	// create config folder if not exists
 	CreateRequiredFolder(c.String("config-folder"))
@@ -286,13 +290,13 @@ func GeneAnnoAction(c *cli.Context) {
 			fmt.Printf("\nfinished the %s\n succesfully", string(r))
 			count++
 			if count > 4 {
-				return
+				return nil
 			}
 		case err := <-errChan:
 			fmt.Printf("\nError %s in running command\n", err)
 			count++
 			if count > 4 {
-				return
+				return nil
 			}
 		default:
 			time.Sleep(100 * time.Millisecond)
@@ -300,6 +304,7 @@ func GeneAnnoAction(c *cli.Context) {
 			//fmt.Printf("\r%d:%d:%d\t", int(elapsed.Hours()), int(elapsed.Minutes()), int(elapsed.Seconds()))
 		}
 	}
+	return nil
 }
 
 func RunExportCmd(opt map[string]string, subcmd string, errChan chan<- error, out chan<- []byte) {
@@ -448,18 +453,24 @@ func RunLiteraturePipeCmd(fopt map[string]string, sopt map[string]string, fscmd 
 	fmt.Println("finished both commands succesfully")
 }
 
-func DbxrefCleanUpAction(c *cli.Context) {
+func DbxrefCleanUpAction(c *cli.Context) error {
 	if err := ValidateCleanUpArgs(c); err != nil {
-		log.Fatal(err)
+		cli.NewExitError(err.Error(), 2)
 	}
 	in, err := os.Open(c.String("input"))
 	if err != nil {
-		log.Fatalf("error in opening file %s\n", err)
+		return cli.NewExitError(
+			fmt.Sprintf("error in opening file %s\n", err),
+			2,
+		)
 	}
 	defer in.Close()
 	out, err := os.Create(c.String("output"))
 	if err != nil {
-		log.Fatalf("error in writing file %s\n", err)
+		return cli.NewExitError(
+			fmt.Sprintf("error in writing file %s\n", err),
+			2,
+		)
 	}
 	defer out.Close()
 
@@ -470,7 +481,10 @@ func DbxrefCleanUpAction(c *cli.Context) {
 			if err == io.EOF {
 				break
 			} else {
-				log.Fatalf("error in reading file %s\n", err)
+				return cli.NewExitError(
+					fmt.Sprintf("error in reading file %s\n", err),
+					2,
+				)
 			}
 
 		}
@@ -488,6 +502,7 @@ func DbxrefCleanUpAction(c *cli.Context) {
 			out.WriteString(line)
 		}
 	}
+	return nil
 }
 
 func splitDbxref(attr string) (string, string) {
@@ -542,24 +557,33 @@ func replaceDbxref(dbxref string, db []string) string {
 	return fmt.Sprintf("Dbxref=%s", strings.TrimSuffix(strings.Join(fDbxref, ","), "\n"))
 }
 
-func SplitPolypeptideAction(c *cli.Context) {
+func SplitPolypeptideAction(c *cli.Context) error {
 	if err := ValidatePolypetideArgs(c); err != nil {
-		log.Fatal(err)
+		return cli.NewExitError(err.Error(), 2)
 	}
 	in, err := os.Open(c.String("input"))
 	if err != nil {
-		log.Fatalf("error in opening file %s: %s\n", c.String("input"), err)
+		return cli.NewExitError(
+			fmt.Sprintf("error in opening file %s\n", err),
+			2,
+		)
 	}
 	defer in.Close()
 	genome, poly := MakeOutputName(c.String("input"))
 	gr, err := os.Create(genome)
 	if err != nil {
-		log.Fatalf("error in opening %s file for writing %s\n", genome, err)
+		return cli.NewExitError(
+			fmt.Sprintf("error in opening %s file  for wriring %s\n", genome, err),
+			2,
+		)
 	}
 	defer gr.Close()
 	pr, err := os.Create(poly)
 	if err != nil {
-		log.Fatalf("error in opening %s file for writing %s\n", poly, err)
+		return cli.NewExitError(
+			fmt.Sprintf("error in opening %s file  for wriring %s\n", genome, err),
+			2,
+		)
 	}
 	defer pr.Close()
 	r := bufio.NewReader(in)
@@ -571,7 +595,10 @@ func SplitPolypeptideAction(c *cli.Context) {
 			if err == io.EOF {
 				break
 			} else {
-				log.Fatalf("error in reading file %s\n", err)
+				return cli.NewExitError(
+					fmt.Sprintf("error in reading file %s\n", genome, err),
+					2,
+				)
 			}
 		}
 		switch {
@@ -588,6 +615,7 @@ func SplitPolypeptideAction(c *cli.Context) {
 			fmt.Fprint(gr, line)
 		}
 	}
+	return nil
 }
 
 func isPolyPeptide(line string) bool {
