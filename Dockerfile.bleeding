@@ -1,0 +1,2 @@
+FROM dictybase/modware-loader-golang:bleeding
+MAINTAINER Siddhartha Basu<siddhartha-basu@northwestern.edu>
