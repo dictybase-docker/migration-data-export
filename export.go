@@ -10,6 +10,33 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "Command line wrapper to export data from Oracle chado using modware-loader"
 	app.Version = "1.0.0"
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:  "log-level",
+			Usage: "logging level of the appliction with six choices, debug, info, warn, error, fatal and panic",
+			Value: "warn",
+		},
+		cli.StringFlag{
+			Name:  "log-format",
+			Usage: "format of the logging out, either of json or text",
+			Value: "text",
+		},
+		cli.StringSliceFlag{
+			Name:  "hooks",
+			Usage: "hook names for sending log in addition to stderr",
+			Value: &cli.StringSlice{},
+		},
+		cli.StringFlag{
+			Name:   "slack-channel",
+			EnvVar: "SLACK_CHANNEL",
+			Usage:  "Slack channel where the log will be posted",
+		},
+		cli.StringFlag{
+			Name:   "slack-url",
+			EnvVar: "SLACK_URL",
+			Usage:  "Slack webhook url[required if slack channel is provided]",
+		},
+	}
 	app.Commands = []cli.Command{
 		{
 			Name:   "canonicalgff3",
@@ -148,9 +175,10 @@ func main() {
 			},
 		},
 		{
-			Name:   "stockcenter",
-			Usage:  "Export strains, plasmids and all assoicated annotations related to stock center",
-			Action: StockCenterAction,
+			Name:     "dsc-annotations",
+			Usage:    "Export annotations",
+			Category: "dsc",
+			Action:   StockCenterAction,
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "output-folder, of",
@@ -166,6 +194,21 @@ func main() {
 					Name:  "config-folder, cf",
 					Usage: "Folder for config files",
 					Value: "/config/stockcenter",
+				},
+				cli.StringFlag{
+					Name:   "host",
+					Usage:  "oracle database host name",
+					EnvVar: "ORACLE_HOST",
+				},
+				cli.StringFlag{
+					Name:   "port",
+					Usage:  "oracle database port",
+					EnvVar: "ORACLE_PORT",
+				},
+				cli.StringFlag{
+					Name:   "sid",
+					Usage:  "oracle database sid",
+					EnvVar: "ORACLE_SID",
 				},
 				cli.StringFlag{
 					Name:   "dsn",
@@ -196,6 +239,46 @@ func main() {
 					Name:   "legacy-dsn",
 					Usage:  "dsn for legacy oracle database [required]",
 					EnvVar: "LEGACY_DSN",
+				},
+			},
+		},
+		{
+			Name:     "dsc-users",
+			Usage:    "Export a map between users and their annotations",
+			Category: "dsc",
+			Action:   DscUsersAction,
+			Before:   validateDscUsers,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:        "output-folder, of",
+					Usage:       "Output folder of the data files",
+					Destination: &outfolder,
+					Value:       "/data/stockcenter",
+				},
+				cli.StringFlag{
+					Name:   "host",
+					Usage:  "oracle database host name[required]",
+					EnvVar: "ORACLE_HOST",
+				},
+				cli.StringFlag{
+					Name:   "port",
+					Usage:  "oracle database port[required]",
+					EnvVar: "ORACLE_PORT",
+				},
+				cli.StringFlag{
+					Name:   "sid",
+					Usage:  "oracle database sid[required]",
+					EnvVar: "ORACLE_SID",
+				},
+				cli.StringFlag{
+					Name:   "user, u",
+					Usage:  "User name for oracle database [required]",
+					EnvVar: "ORACLE_USER",
+				},
+				cli.StringFlag{
+					Name:   "password, p",
+					Usage:  "Password for oracle database[required]",
+					EnvVar: "ORACLE_PASS",
 				},
 			},
 		},

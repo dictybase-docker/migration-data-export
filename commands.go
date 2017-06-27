@@ -162,51 +162,6 @@ func ExtraGFF3Action(c *cli.Context) error {
 	return nil
 }
 
-func StockCenterAction(c *cli.Context) error {
-	if !ValidateArgs(c) {
-		return cli.NewExitError("one or more of required arguments are not provided", 2)
-	}
-	if !ValidateExtraArgs(c) {
-		return cli.NewExitError("one or more of required arguments are not provided", 2)
-	}
-	CreateRequiredFolder(c.String("config-folder"))
-	CreateRequiredFolder(c.String("output-folder"))
-	errChan := make(chan error)
-	out := make(chan []byte)
-	for _, scmd := range []string{"dictystrain", "dictyplasmid"} {
-		yc := MakeSCConfig(c, scmd)
-		CreateSCFolder(yc)
-		conf := make(map[string]string)
-		conf["config"] = yc
-		conf["dir"] = c.String("output-folder")
-		go RunDumpCmd(conf, scmd, errChan, out)
-	}
-
-	count := 1
-	//curr := time.Now()
-	for {
-		select {
-		case r := <-out:
-			log.Printf("\nfinished the %s\n succesfully", string(r))
-			count++
-			if count > 2 {
-				return nil
-			}
-		case err := <-errChan:
-			log.Printf("\nError %s in running command\n", err)
-			count++
-			if count > 2 {
-				return nil
-			}
-		default:
-			time.Sleep(100 * time.Millisecond)
-			//elapsed := time.Since(curr)
-			//fmt.Printf("\r%d:%d:%d\t", int(elapsed.Hours()), int(elapsed.Minutes()), int(elapsed.Seconds()))
-		}
-	}
-	return nil
-}
-
 func LiteratureAction(c *cli.Context) error {
 	if !ValidateArgs(c) {
 		return cli.NewExitError("one or more of required arguments are not provided", 2)
