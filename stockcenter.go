@@ -31,6 +31,23 @@ func validateDscUsers(c *cli.Context) error {
 	return nil
 }
 
+func validateDsc(c *cli.Context) error {
+	if !ValidateArgs(c) {
+		return cli.NewExitError("one or more of required arguments are not provided", 2)
+	}
+	if !ValidateExtraArgs(c) {
+		return cli.NewExitError("one or more of required arguments are not provided", 2)
+	}
+	return nil
+}
+
+func validateDscOrder(c *cli.Context) error {
+	if !ValidateExtraArgs(c) {
+		return cli.NewExitError("one or more of required arguments are not provided", 2)
+	}
+	return nil
+}
+
 func getOracleConnection(c *cli.Context) (*sql.DB, error) {
 	dataSource := fmt.Sprintf(
 		"%s/%s@%s:%s/%s",
@@ -177,12 +194,6 @@ func exportStrainUsers(c *cli.Context) error {
 }
 
 func StockCenterAction(c *cli.Context) error {
-	if !ValidateArgs(c) {
-		return cli.NewExitError("one or more of required arguments are not provided", 2)
-	}
-	if !ValidateExtraArgs(c) {
-		return cli.NewExitError("one or more of required arguments are not provided", 2)
-	}
 	CreateRequiredFolder(c.String("config-folder"))
 	CreateRequiredFolder(c.String("output-folder"))
 	errChan := make(chan error)
@@ -204,13 +215,13 @@ func StockCenterAction(c *cli.Context) error {
 			log.Printf("\nfinished the %s\n succesfully", string(r))
 			count++
 			if count > 2 {
-				return nil
+				break
 			}
 		case err := <-errChan:
 			log.Printf("\nError %s in running command\n", err)
 			count++
 			if count > 2 {
-				return nil
+				break
 			}
 		default:
 			time.Sleep(100 * time.Millisecond)
@@ -218,6 +229,11 @@ func StockCenterAction(c *cli.Context) error {
 			//fmt.Printf("\r%d:%d:%d\t", int(elapsed.Hours()), int(elapsed.Minutes()), int(elapsed.Seconds()))
 		}
 	}
+	return nil
+}
+
+func DscOrderAction(c *cli.Context) error {
+	CreateRequiredFolder(outfolder)
 	if err := exportDscOrders(c); err != nil {
 		return cli.NewExitError(err.Error(), 2)
 	}
@@ -244,14 +260,14 @@ func makeOrderExportCmd(c *cli.Context) []string {
 	return []string{
 		"dscorders",
 		"--dsn",
-		c.String("dsn"),
+		c.String("legacy-dsn"),
 		"-u",
-		c.String("user"),
+		c.String("legacy-user"),
 		"-p",
-		c.String("password"),
+		c.String("legacy-password"),
 		"--so",
-		filepath.Join(c.String("output-folder"), "strain_orders.tsv"),
+		filepath.Join(c.String("output-folder"), "strain_orders.csv"),
 		"--po",
-		filepath.Join(c.String("output-folder"), "plasmid_orders.tsv"),
+		filepath.Join(c.String("output-folder"), "plasmid_orders.csv"),
 	}
 }

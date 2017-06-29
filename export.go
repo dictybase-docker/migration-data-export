@@ -175,9 +175,39 @@ func main() {
 			},
 		},
 		{
+			Name:     "dsc-orders",
+			Usage:    "Export dictybase stock center orders",
+			Category: "dsc",
+			Action:   DscOrderAction,
+			Before:   validateDscOrder,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "output-folder, of",
+					Usage: "Output folder",
+					Value: "/data/stockcenter",
+				},
+				cli.StringFlag{
+					Name:   "legacy-user",
+					Usage:  "User name for legacy oracle database[required]",
+					EnvVar: "LEGACY_USER",
+				},
+				cli.StringFlag{
+					Name:   "legacy-password",
+					Usage:  "Password for legacy oracle database [required]",
+					EnvVar: "LEGACY_PASS",
+				},
+				cli.StringFlag{
+					Name:   "legacy-dsn",
+					Usage:  "dsn for legacy oracle database [required]",
+					EnvVar: "LEGACY_DSN",
+				},
+			},
+		},
+		{
 			Name:     "dsc-annotations",
 			Usage:    "Export annotations",
 			Category: "dsc",
+			Before:   validateDsc,
 			Action:   StockCenterAction,
 			Flags: []cli.Flag{
 				cli.StringFlag{
