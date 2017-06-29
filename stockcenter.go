@@ -46,10 +46,10 @@ func getOracleConnection(c *cli.Context) (*sql.DB, error) {
 func DscUsersAction(c *cli.Context) error {
 	CreateRequiredFolder(outfolder)
 	if err := exportPlasmidUsers(c); err != nil {
-		return err
+		return cli.NewExitError(err.Error(), 2)
 	}
 	if err := exportStrainUsers(c); err != nil {
-		return err
+		return cli.NewExitError(err.Error(), 2)
 	}
 	return nil
 }
@@ -59,14 +59,14 @@ func exportPlasmidUsers(c *cli.Context) error {
 	outfile := filepath.Join(outfolder, "plasmid_user_annotations.csv")
 	writer, err := os.Create(outfile)
 	if err != nil {
-		return cli.NewExitError(fmt.Sprintf("unable to open file %s", err), 2)
+		return fmt.Errorf("unable to open file %s", err)
 	}
 	defer writer.Close()
 	csv := csv.NewWriter(writer)
 
 	dbh, err := getOracleConnection(c)
 	if err != nil {
-		return cli.NewExitError(fmt.Sprintf("error in connecting to database %s", err), 2)
+		return fmt.Errorf("error in connecting to database %s", err)
 	}
 	defer dbh.Close()
 	log.Infof("started writing annotation in %s", outfile)
@@ -88,7 +88,7 @@ func exportPlasmidUsers(c *cli.Context) error {
 	for rows.Next() {
 		err := rows.Scan(&plasmidId, &createdBy, &createdOn, &modifiedOn)
 		if err != nil {
-			return cli.NewExitError(fmt.Sprintf("unable to scan the next row %s", err), 2)
+			return fmt.Errorf("unable to scan the next row %s", err)
 		}
 		err = csv.Write(
 			[]string{
@@ -99,16 +99,16 @@ func exportPlasmidUsers(c *cli.Context) error {
 			},
 		)
 		if err != nil {
-			return cli.NewExitError(fmt.Sprintf("unable to write csv row %s", err), 2)
+			return fmt.Errorf("unable to write csv row %s", err)
 		}
 	}
 	err = rows.Err()
 	if err != nil {
-		return cli.NewExitError(fmt.Sprintf("unable to close the rows %s", err), 2)
+		return fmt.Errorf("unable to close the rows %s", err)
 	}
 	csv.Flush()
 	if err := csv.Error(); err != nil {
-		return cli.NewExitError(fmt.Sprintf("unable to finish csv writing %s", err), 2)
+		return fmt.Errorf("unable to finish csv writing %s", err)
 	}
 	log.Infof("finished writing annotations to %s", outfile)
 	return nil
@@ -219,7 +219,7 @@ func StockCenterAction(c *cli.Context) error {
 		}
 	}
 	if err := exportDscOrders(c); err != nil {
-		return err
+		return cli.NewExitError(err.Error(), 2)
 	}
 	return nil
 }
@@ -228,19 +228,13 @@ func exportDscOrders(c *cli.Context) error {
 	log := getLogger(c)
 	mainCmd, err := exec.LookPath("modware-export")
 	if err != nil {
-		return cli.NewExitError(
-			fmt.Sprintf("could not find binary %s", err),
-			2,
-		)
+		return fmt.Errorf("could not find binary %s", err)
 	}
 	subCmd := makeOrderExportCmd(c)
 	log.Infof("running the command %s", strings.Join(subCmd, " "))
 	_, err = exec.Command(mainCmd, subCmd...).CombinedOutput()
 	if err != nil {
-		return cli.NewExitError(
-			fmt.Sprintf("error %s running the command %s", err, strings.Join(subCmd, " ")),
-			2,
-		)
+		return fmt.Errorf("error %s running the command %s", err, strings.Join(subCmd, " "))
 	}
 	log.Info("successfully ran the command")
 	return nil
