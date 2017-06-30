@@ -182,9 +182,10 @@ func main() {
 			Before:   validateDscOrder,
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:  "output-folder, of",
-					Usage: "Output folder",
-					Value: "/data/stockcenter",
+					Name:        "output-folder, of",
+					Usage:       "Output folder",
+					Destination: &outfolder,
+					Value:       "/data/stockcenter",
 				},
 				cli.StringFlag{
 					Name:   "legacy-user",
