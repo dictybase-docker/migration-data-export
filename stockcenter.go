@@ -19,9 +19,18 @@ var outfolder string
 
 const layout = "2006-01-02 15:04:05"
 
+func CreateFolder(folder string) error {
+	if _, err := os.Stat(folder); os.IsNotExist(err) {
+		if err := os.MkdirAll(folder, 0744); err != nil {
+			return fmt.Errorf("unable to create %s folder %s", folder, err)
+		}
+	}
+	return nil
+}
+
 func validateDscUsers(c *cli.Context) error {
 	for _, p := range []string{"host", "sid", "user", "password"} {
-		if !c.IsSet(p) {
+		if c.Generic(p) == nil {
 			return cli.NewExitError(
 				fmt.Sprintf("flag %s is required", p),
 				2,
@@ -233,7 +242,9 @@ func StockCenterAction(c *cli.Context) error {
 }
 
 func DscOrderAction(c *cli.Context) error {
-	CreateRequiredFolder(outfolder)
+	if err := CreateFolder(outfolder); err != nil {
+		return cli.NewExitError(err.Error(), 2)
+	}
 	if err := exportDscOrders(c); err != nil {
 		return cli.NewExitError(err.Error(), 2)
 	}

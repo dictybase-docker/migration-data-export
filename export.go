@@ -226,21 +226,6 @@ func main() {
 					Value: "/config/stockcenter",
 				},
 				cli.StringFlag{
-					Name:   "host",
-					Usage:  "oracle database host name",
-					EnvVar: "ORACLE_HOST",
-				},
-				cli.StringFlag{
-					Name:   "port",
-					Usage:  "oracle database port",
-					EnvVar: "ORACLE_PORT",
-				},
-				cli.StringFlag{
-					Name:   "sid",
-					Usage:  "oracle database sid",
-					EnvVar: "ORACLE_SID",
-				},
-				cli.StringFlag{
 					Name:   "dsn",
 					Usage:  "dsn for oracle database server [required]",
 					EnvVar: "ORACLE_DSN",
