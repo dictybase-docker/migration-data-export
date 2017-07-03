@@ -299,6 +299,34 @@ func main() {
 			},
 		},
 		{
+			Name:   "colleagues",
+			Usage:  "Export dictybase colleagues(users) information",
+			Action: ColleaguesAction,
+			Before: validateColleagues,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "output-folder, of",
+					Usage: "Output folder",
+					Value: "/data/users",
+				},
+				cli.StringFlag{
+					Name:   "legacy-user",
+					Usage:  "User name for legacy oracle database[required]",
+					EnvVar: "LEGACY_USER",
+				},
+				cli.StringFlag{
+					Name:   "legacy-password",
+					Usage:  "Password for legacy oracle database [required]",
+					EnvVar: "LEGACY_PASS",
+				},
+				cli.StringFlag{
+					Name:   "legacy-dsn",
+					Usage:  "dsn for legacy oracle database [required]",
+					EnvVar: "LEGACY_DSN",
+				},
+			},
+		},
+		{
 			Name:   "literature",
 			Usage:  "Export the literature and annotations",
 			Action: LiteratureAction,
