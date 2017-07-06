@@ -34,9 +34,9 @@ func exportColleagues(c *cli.Context) error {
 	}
 	subCmd := makeColleaguesExportCmd(c)
 	log.Infof("running the command %s", strings.Join(subCmd, " "))
-	_, err = exec.Command(mainCmd, subCmd...).CombinedOutput()
+	b, err := exec.Command(mainCmd, subCmd...).CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("error %s running the command %s", err, strings.Join(subCmd, " "))
+		return fmt.Errorf("error %s running the command %s with output %s", err, strings.Join(subCmd, " "), string(b))
 	}
 	log.Info("successfully ran the command")
 	return nil
