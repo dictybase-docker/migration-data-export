@@ -32,7 +32,7 @@ func exportColleagues(c *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("could not find binary %s", err)
 	}
-	subCmd := makeOrderExportCmd(c)
+	subCmd := makeColleaguesExportCmd(c)
 	log.Infof("running the command %s", strings.Join(subCmd, " "))
 	_, err = exec.Command(mainCmd, subCmd...).CombinedOutput()
 	if err != nil {
