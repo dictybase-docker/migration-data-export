@@ -179,7 +179,7 @@ func main() {
 			Usage:    "Export dictybase stock center orders",
 			Category: "dsc",
 			Action:   DscOrderAction,
-			Before:   validateDscOrder,
+			Before:   validateDscUsers,
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:        "output-folder, of",
@@ -188,19 +188,29 @@ func main() {
 					Value:       "/data/stockcenter",
 				},
 				cli.StringFlag{
-					Name:   "legacy-user",
-					Usage:  "User name for legacy oracle database[required]",
-					EnvVar: "LEGACY_USER",
+					Name:   "host",
+					Usage:  "oracle database host name[required]",
+					EnvVar: "ORACLE_HOST",
 				},
 				cli.StringFlag{
-					Name:   "legacy-password",
-					Usage:  "Password for legacy oracle database [required]",
-					EnvVar: "LEGACY_PASS",
+					Name:   "port",
+					Usage:  "oracle database port[required]",
+					EnvVar: "ORACLE_PORT",
 				},
 				cli.StringFlag{
-					Name:   "legacy-dsn",
-					Usage:  "dsn for legacy oracle database [required]",
-					EnvVar: "LEGACY_DSN",
+					Name:   "sid",
+					Usage:  "oracle database sid[required]",
+					EnvVar: "ORACLE_SID",
+				},
+				cli.StringFlag{
+					Name:   "user, u",
+					Usage:  "User name for oracle database [required]",
+					EnvVar: "ORACLE_USER",
+				},
+				cli.StringFlag{
+					Name:   "password, p",
+					Usage:  "Password for oracle database[required]",
+					EnvVar: "ORACLE_PASS",
 				},
 			},
 		},

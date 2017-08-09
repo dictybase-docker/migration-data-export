@@ -19,6 +19,41 @@ var outfolder string
 
 const layout = "2006-01-02 15:04:05"
 
+const plasmidOrder = `
+	SELECT sitem.item FROM CGM_DDB.stock_item_order sitem
+	JOIN CGM_DDB.plasmid ON sitem.item = plasmid.name
+	WHERE sitem.order_id = :1
+`
+
+const strainOrder = `
+SELECT dbxref.accession
+	FROM CGM_DDB.stock_center strain
+	JOIN CGM_DDB.stock_item_order sitem
+    ON strain.id= sitem.item_id
+    JOIN CGM_CHADO.dbxref
+    ON dbxref.dbxref_id = strain.dbxref_id
+	WHERE sitem.order_id = :1
+    AND sitem.stock_item_order_id NOT IN (
+        SELECT sitem.stock_item_order_id
+              FROM CGM_DDB.stock_item_order sitem
+              JOIN CGM_DDB.plasmid ON sitem.item = plasmid.name
+			  WHERE sitem.order_id = :2
+    )
+`
+
+const listOrders = `
+	SELECT email.email,
+	  sorder.order_date,sorder.stock_order_id
+	  FROM CGM_DDB.stock_order sorder
+	  JOIN CGM_DDB.colleague
+	  ON colleague.colleague_no = sorder.colleague_id
+	  JOIN CGM_DDB.coll_email
+	  ON coll_email.colleague_no = colleague.colleague_no
+	  JOIN CGM_DDB.email
+	  ON email.email_no = coll_email.email_no
+	  ORDER BY sorder.order_date, email.email
+	`
+
 func CreateFolder(folder string) error {
 	if _, err := os.Stat(folder); os.IsNotExist(err) {
 		if err := os.MkdirAll(folder, 0744); err != nil {
@@ -242,12 +277,133 @@ func StockCenterAction(c *cli.Context) error {
 }
 
 func DscOrderAction(c *cli.Context) error {
-	if err := CreateFolder(outfolder); err != nil {
-		return cli.NewExitError(err.Error(), 2)
+	log := getLogger(c)
+	outfile := filepath.Join(outfolder, "stock_orders.csv")
+	writer, err := os.Create(outfile)
+	if err != nil {
+		return cli.NewExitError(fmt.Sprintf("unable to open file %s", err), 2)
 	}
-	if err := exportDscOrders(c); err != nil {
-		return cli.NewExitError(err.Error(), 2)
+	defer writer.Close()
+	csv := csv.NewWriter(writer)
+
+	// database connection
+	dbh, err := getOracleConnection(c)
+	if err != nil {
+		return cli.NewExitError(fmt.Sprintf("error in connecting to database %s", err), 2)
 	}
+	defer dbh.Close()
+	// prepared statements for repeated executions
+	pOrderStmt, err := dbh.Prepare(plasmidOrder)
+	if err != nil {
+		log.Errorf("error in preparing plasmid order statement %s", err)
+		return cli.NewExitError(
+			fmt.Sprintf("error in preparing plasmid order statement %s", err),
+			2,
+		)
+	}
+	sOrderStmt, err := dbh.Prepare(strainOrder)
+	if err != nil {
+		log.Errorf("error in preparing strain  order statement %s", err)
+		return cli.NewExitError(
+			fmt.Sprintf("error in preparing strain  order statement %s", err),
+			2,
+		)
+	}
+
+	log.Infof("start writing orders to file %s", outfile)
+	var (
+		stockOrderId int64
+		orderDate    time.Time
+		email        string
+	)
+	// list of orders
+	rows, err := dbh.Query(listOrders)
+	if err != nil {
+		log.Errorf("unable to run query %s", err)
+		return cli.NewExitError(fmt.Sprintf("unable to run query %s", err), 2)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err := rows.Scan(&email, &orderDate, &stockOrderId)
+		if err != nil {
+			log.Errorf("error in scanning row %s", err)
+			return cli.NewExitError(fmt.Sprintf("unable to scan the next row %s", err), 2)
+		}
+		var order []string
+		order = append(order, orderDate.Format(layout), email)
+
+		// list of plasmids per order
+		prows, err := pOrderStmt.Query(stockOrderId)
+		if err != nil {
+			log.Errorf("unable to run plasmid query for order %d %s", stockOrderId, err)
+			return cli.NewExitError(fmt.Sprintf("unable to run query %s", err), 2)
+		}
+		defer prows.Close()
+		var plasmid string
+		for prows.Next() {
+			err := prows.Scan(&plasmid)
+			if err != nil {
+				log.Errorf("error in scanning row for plasmid %s", err)
+				return cli.NewExitError(fmt.Sprintf("unable to scan the next row for plasmid %s", err), 2)
+			}
+			order = append(order, plasmid)
+		}
+		err = prows.Err()
+		if err != nil {
+			log.Errorf("unable to close the rows for plasmid %s", err)
+			return cli.NewExitError(
+				fmt.Sprintf("unable to close the rows for plasmid %s", err),
+				2,
+			)
+		}
+
+		// list of strains per order
+		srows, err := sOrderStmt.Query(stockOrderId, stockOrderId)
+		if err != nil {
+			log.Errorf("unable to run strain query for order %d %s", stockOrderId, err)
+			return cli.NewExitError(fmt.Sprintf("unable to run strain query %s", err), 2)
+		}
+		defer srows.Close()
+		var strain string
+		for srows.Next() {
+			err := srows.Scan(&strain)
+			if err != nil {
+				log.Errorf("error in scanning row for strain %s", err)
+				return cli.NewExitError(fmt.Sprintf("unable to scan the next row for strain  %s", err), 2)
+			}
+			order = append(order, strain)
+		}
+		err = srows.Err()
+		if err != nil {
+			log.Errorf("unable to close the rows for plasmid strain %s", err)
+			return cli.NewExitError(
+				fmt.Sprintf("unable to close the rows for strain  %s", err),
+				2,
+			)
+		}
+		err = csv.Write(order)
+		if err != nil {
+			log.Errorf("unable to write csv row %s %s", strings.Join(order, ""), err)
+			return cli.NewExitError(
+				fmt.Sprintf("unable to write csv row %s %s", strings.Join(order, ""), err),
+				2,
+			)
+		}
+		err = rows.Err()
+		if err != nil {
+			log.Errorf("unable to close the rows for list of orders  %s", err)
+			return cli.NewExitError(
+				fmt.Sprintf("unable to close the rows for list of orders   %s", err),
+				2,
+			)
+		}
+		csv.Flush()
+		if err := csv.Error(); err != nil {
+			log.Errorf("unable to finish csv writing %s", err)
+			return cli.NewExitError(fmt.Sprintf("unable to finish csv writing %s", err), 2)
+		}
+	}
+	log.Infof("finished writing all orders  to %s", outfile)
 	return nil
 }
 
