@@ -20,13 +20,13 @@ var outfolder string
 const layout = "2006-01-02 15:04:05"
 
 const plasmidOrder = `
-	SELECT sitem.item FROM CGM_DDB.stock_item_order sitem
+	SELECT DISTINCT sitem.item FROM CGM_DDB.stock_item_order sitem
 	JOIN CGM_DDB.plasmid ON sitem.item = plasmid.name
 	WHERE sitem.order_id = :1
 `
 
 const strainOrder = `
-SELECT dbxref.accession
+SELECT DISTINCT dbxref.accession
 	FROM CGM_DDB.stock_center strain
 	JOIN CGM_DDB.stock_item_order sitem
     ON strain.id= sitem.item_id
