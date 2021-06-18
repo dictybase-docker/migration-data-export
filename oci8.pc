@@ -1,0 +1,9 @@
+prefixdir=/usr/lib/oracle/11.2/client64
+libdir=${prefixdir}/lib
+includedir=/usr/include/oracle/11.2/client64
+
+Name: OCI
+Description: Oracle database driver
+Version: 11.2
+Libs: -L${libdir} -lclntsh
+Cflags: -I${includedir}
