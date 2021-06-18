@@ -1,0 +1,64 @@
+fasciculatum_patch:
+    container_name: fasciculatum_patch
+    image: dictybase/migration-data-export
+    volumes_from:
+        - genomes_hub
+    command: [
+        "app",
+        "clean-dbxref",
+        "-o",
+        "/data/gff3/fasciculatum/fasciculatum_canonical_mitochondrial_clean.gff3",
+        "-i",
+        "/data/gff3/fasciculatum/fasciculatum_canonical_mitochondrial.gff3",
+        "-n",
+        "NCBI_GP",
+        "-n",
+        "NCBI_gi",
+        "-n",
+        "GeneID"
+    ]
+pallidum_patch:
+    container_name: pallidum_patch
+    image: dictybase/migration-data-export
+    volumes_from:
+        - genomes_hub
+    command: [
+        "app",
+        "clean-dbxref",
+        "-o",
+        "/data/gff3/pallidum/pallidum_canonical_mitochondrial_clean.gff3",
+        "-i",
+        "/data/gff3/pallidum/pallidum_canonical_mitochondrial.gff3",
+        "-n",
+        "GeneID",
+        "-n",
+        "NCBI_GP",
+        "-n",
+        "NCBI_gi"
+    ]
+dictyostelium_patch:
+    container_name: dictyostelium_patch
+    image: dictybase/migration-data-export
+    volumes_from:
+        - genomes_hub
+    command: [
+        "app",
+        "split-polypeptide",
+        "-i",
+        "/data/gff3/discoideum/canonical_core.gff3"
+    ]
+purpureum_patch:
+    container_name: purpureum_patch
+    image: dictybase/migration-data-export
+    volumes_from:
+        - genomes_hub
+    command: [
+        "app",
+        "clean-dbxref",
+        "-o",
+        "/data/gff3/purpureum/purpureum_canonical_core_clean.gff3",
+        "-i",
+        "/data/gff3/purpureum/purpureum_canonical_core.gff3",
+        "-n",
+        "JGI_DPUR"
+    ]

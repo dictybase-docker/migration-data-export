@@ -1,0 +1,38 @@
+genomes_extra_data:
+    container_name: genomes_extra_data
+    image: alpine
+    volumes: 
+        - /data
+    command: /bin/true
+genomes_extra_config:
+    container_name: genomes_extra_config
+    image: alpine
+    volumes:
+        - /config
+    command: /bin/true
+genomes_extra_log:
+    container_name: genomes_extra_log
+    image: alpine
+    volumes:
+        - /log
+    command: /bin/true
+genomes_extra_hub:
+    container_name: genomes_exra_hub
+    image: alpine
+    volumes_from:
+        - genomes_extra_data
+        - genomes_extra_config
+        - genomes_extra_log
+    command: /bin/true
+genomes_extra:
+    container_name: genomes_extra
+    image: dictybase/migration-data-export
+    volumes_from:
+        - genomes_extra_hub
+    environment:
+        - ORACLE_DSN=dbi:Oracle:host=dicty-oracle-vm.nubic.northwestern.edu;port=1521;sid=orcl
+        - ORACLE_USER=CGM_CHADO
+        - ORACLE_PASS=CGM_CHADO
+        - MULTI_ORACLE_USER=DPUR_CHADO
+        - MULTI_ORACLE_PASS=DPUR_CHADO
+    command: app extradictygff3
