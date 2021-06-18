@@ -12,7 +12,7 @@ import (
 	"time"
 
 	_ "gopkg.in/rana/ora.v4"
-	"gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli"
 )
 
 var outfolder string

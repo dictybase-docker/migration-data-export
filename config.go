@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"gopkg.in/urfave/cli.v1"
 	"gopkg.in/yaml.v1"
+	"github.com/urfave/cli"
 )
 
 type Pub2BibConfig struct {

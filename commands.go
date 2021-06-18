@@ -14,8 +14,7 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli"
 )
 
 var ur = regexp.MustCompile("-")

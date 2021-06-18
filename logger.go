@@ -5,7 +5,7 @@ import (
 
 	"github.com/johntdyer/slackrus"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli"
 )
 
 func getLogger(c *cli.Context) *logrus.Logger {

@@ -5,8 +5,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-
-	"gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli"
 )
 
 func validateColleagues(c *cli.Context) error {
