@@ -6,6 +6,15 @@ all data export tasks of dictybase overhaul project.
 ### Prerequisites
 * [Docker](https://www.docker.com/products/docker-app) and [docker-compose](https://docs.docker.com/compose/).
 * A working connection to NU VPN.
+### Build the image
+```
+docker build --rm dictybase/migration-data-export .
+```
+For MacOSX with M1 chip system add the platform argument.
+```
+docker build --rm --platform linux/amd64 dictybase/migration-data-export .
+```
+
 ### Running the exports
 * Connect to NU VPN.
 #### Stockcenter 
