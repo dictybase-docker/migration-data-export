@@ -1,12 +1,10 @@
-FROM golang:1.16.5-buster AS wrapper 
+FROM golang:1.17.11-buster AS wrapper 
 LABEL maintainer="Siddhartha Basu<siddhartha-basu@northwestern.edu>"
 
 # preparation for oracle client
 ENV ORACLE_HOME /usr/lib/oracle/11.2/client64/
 ENV LD_LIBRARY_PATH /usr/lib/oracle/11.2/client64/lib/
-ADD https://northwestern.box.com/shared/static/3n0wdp04075oyrnytznn9mzc3k9o92c1.rpm /rpms/
-ADD https://northwestern.box.com/shared/static/o2gd3o70sik5liw43hiomusmu0262auw.rpm /rpms/
-ADD https://northwestern.box.com/shared/static/nsflzsbm2xmcf46z1ybiustosqkdskbb.rpm /rpms/
+ADD oracle/*rpm /rpms/
 RUN apt-get update && \
     apt-get -y --no-install-recommends install \
     alien libaio1 libdb-dev libexpat1-dev \
@@ -27,15 +25,12 @@ COPY *.go ./
 RUN go build -o wrap-exporter 
 
 
-#FROM perl:5.20
-FROM perl:5.34.0-buster
+FROM perl:5.34.1-buster
 MAINTAINER Siddhartha Basu <siddhartha-basu@northwestern.edu>
 
 ENV ORACLE_HOME /usr/lib/oracle/11.2/client64/
 ENV LD_LIBRARY_PATH /usr/lib/oracle/11.2/client64/lib/
-ADD https://northwestern.box.com/shared/static/3n0wdp04075oyrnytznn9mzc3k9o92c1.rpm /rpms/
-ADD https://northwestern.box.com/shared/static/o2gd3o70sik5liw43hiomusmu0262auw.rpm /rpms/
-ADD https://northwestern.box.com/shared/static/nsflzsbm2xmcf46z1ybiustosqkdskbb.rpm /rpms/
+ADD oracle/*rpm /rpms/
 RUN apt-get update && \
     apt-get -y install alien libaio1 libdb-dev && \
     mkdir -p /rpms && \
@@ -45,9 +40,9 @@ RUN apt-get update && \
     && apt-get clean \
     && apt-get autoremove \
     && rm -rf /var/lib/apt/lists/*
-RUN cpanm -n --quiet DBD::Oracle  DBD::Pg Math::Base36 String::CamelCase Child \
+RUN cpanm -n --quiet DBI DBD::Oracle DBD::Pg Math::Base36 String::CamelCase Child JSON \
     && rm -fr /rpms
-RUN cpanm -n --quiet git://github.com/dictyBase/Modware-Loader.git@v1.10.4
+RUN cpanm -n --quiet https://github.com/dictyBase/Modware-Loader.git@v1.10.5
 RUN cpanm -n --quiet Bio::DB::GenBank
 COPY oci8.pc /usr/share/pkgconfig/
 COPY --from=wrapper /go/src/app/wrap-exporter /usr/local/bin/app
