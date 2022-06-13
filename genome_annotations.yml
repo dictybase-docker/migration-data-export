@@ -1,39 +1,16 @@
-annotations_data:
-    container_name: annotations_data
-    image: alpine
-    volumes: 
-        - /data
-    command: /bin/true
-annotations_config:
-    container_name: annotations_config
-    image: alpine
+version: "3.2"
+services:
+  genome-annotations:
+    container_name: genome-annotations
+    image: dictybase/migration-data-export
     volumes:
-        - /config
-    command: /bin/true
-annotations_log:
-    container_name: annotations_log
-    image: alpine
-    volumes:
-        - /log
-    command: /bin/true
-annotations_hub:
-    container_name: annotations_hub
-    image: alpine
-    volumes_from:
-        - annotations_data
-        - annotations_config
-        - annotations_log
-    command: /bin/true
-annotations:
-    container_name: annotations
-    image: dictybase/modware-loader-export:1.6.2
-    volumes_from:
-        - annotations_hub
-    environment:
-        - ORACLE_DSN=dbi:Oracle:host=dicty-oracle-vm.nubic.northwestern.edu;port=1521;sid=orcl
-        - ORACLE_USER=CGM_CHADO
-        - ORACLE_PASS=CGM_CHADO
-        - LEGACY_DSN=dbi:Oracle:host=dicty-oracle-vm.nubic.northwestern.edu;port=1521;sid=orcl
-        - LEGACY_USER=CGM_DDB
-        - LEGACY_PASS=CGM_DDB
-    command: app geneannotation
+        - data:/data
+        - config:/config
+        - log:/log
+    env_file:
+        - ./common.env
+    command: ["geneannotation"]
+volumes:
+    data: {}
+    config: {}
+    log: {}

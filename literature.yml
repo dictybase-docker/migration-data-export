@@ -1,34 +1,16 @@
-literature_data:
-    container_name: literature_data
-    image: alpine
-    volumes: 
-        - /data
-    command: /bin/true
-literature_config:
-    container_name: literature_config
-    image: alpine
-    volumes:
-        - /config
-    command: /bin/true
-literature_log:
-    container_name: literature_log
-    image: alpine
-    volumes:
-        - /log
-    command: /bin/true
-literature_hub:
-    container_name: literature_hub
-    image: alpine
-    volumes_from:
-        - literature_data
-        - literature_config
-        - literature_log
-    command: /bin/true
-literature:
+version: "3.2"
+services:
+  literature:
     container_name: literature
     image: dictybase/migration-data-export
-    volumes_from:
-        - literature_hub
+    volumes:
+        - data:/data
+        - config:/config
+        - log:/log
     env_file:
         - ./common.env
-    command: app literature
+    command: ["literature"] 
+volumes:
+    data: {}
+    config: {}
+    log: {}
