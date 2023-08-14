@@ -5,7 +5,7 @@ docker-copy: remove
 	docker cp dictybase-users:/data/ $(shell pwd)/
 	docker cp literature:/data/ $(shell pwd)/
 #	docker cp genome-annotations:/data/ $(shell pwd)/
-create-tarball: docker-copy 
+create-tarball:
 		cd data/ \
 		&& tar cvzf stockcenter.tar.gz stockcenter \
 		&& tar cvzf users.tar.gz users \ 
