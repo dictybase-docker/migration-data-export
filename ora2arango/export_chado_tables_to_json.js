@@ -1,4 +1,3 @@
-use strict
 load("https://raw.githubusercontent.com/lodash/lodash/4.17.15-npm/core.min.js")
 var FileUtils = Java.type("oracle.dbtools.common.utils.FileUtils")
 var Files = Java.type("java.nio.file.Files")
