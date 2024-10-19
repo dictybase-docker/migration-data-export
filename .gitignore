@@ -2,3 +2,13 @@ data/
 oracle/
 copy-from-docker
 .tool-versions
+dicty-stats/dictystats
+dicty-stats/gene_description.csv
+dicty-stats/output.csv
+dicty-stats/strain_phenotype.csv
+dicty-stats/strain_phenotype_upto_2018.csv
+dicty-stats/strain_phenotype_upto_2019.csv
+dicty-stats/strains_group_by_phenotype.csv
+ora2arango/cgm-ddb-content.tar.gz
+ora2arango/cgm_ddb_tables.txt
+ora2arango/chado_tables.txt
