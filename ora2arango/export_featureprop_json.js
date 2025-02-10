@@ -1,16 +1,19 @@
-var FileUtils = Java.type("oracle.dbtools.common.utils.FileUtils")
-var Collectors = Java.type("java.util.stream.Collectors")
-var Files = Java.type("java.nio.file.Files")
-var Paths = Java.type("java.nio.file.Paths")
-var BufferedReader = Java.type("java.io.BufferedReader")
-var StandardOpenOption = Java.type("java.nio.file.StandardOpenOption")
-var String = Java.type("java.lang.String")
+FileUtils = Java.type("oracle.dbtools.common.utils.FileUtils")
+Collectors = Java.type("java.util.stream.Collectors")
+Files = Java.type("java.nio.file.Files")
+Paths = Java.type("java.nio.file.Paths")
+BufferedReader = Java.type("java.io.BufferedReader")
+StandardOpenOption = Java.type("java.nio.file.StandardOpenOption")
+String = Java.type("java.lang.String")
 
-var cwd = FileUtils.getCWD(ctx);
-var outputPath = Paths.get(cwd, "/","featureprop.json")
-Files.writeString(outputPath, "", StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+cwd = FileUtils.getCWD(ctx);
+outputPath = Paths.get(cwd, "/","featureprop_clob.json")
+Files.writeString(
+	outputPath, "", 
+	StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING
+)
 
-var stmt = `
+stmt = `
 SELECT 
     featureprop_id,
     value
