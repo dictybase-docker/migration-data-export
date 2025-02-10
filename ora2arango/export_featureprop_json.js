@@ -7,7 +7,7 @@ StandardOpenOption = Java.type("java.nio.file.StandardOpenOption")
 String = Java.type("java.lang.String")
 
 cwd = FileUtils.getCWD(ctx);
-outputPath = Paths.get(cwd, "/","featureprop_clob.json")
+outputPath = Paths.get(cwd, "/","featureprop_clob.csv")
 Files.writeString(
 	outputPath, "", 
 	StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING
