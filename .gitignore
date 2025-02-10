@@ -18,3 +18,5 @@ ora2arango/table_test.txt
 ora2arango/feature_clob.json
 ora2arango/featureprop.json
 ora2arango/featureprop_clob.json
+ora2arango/featureprop_clob.csv
+ora2arango/featureprop_clob.csv.gz
