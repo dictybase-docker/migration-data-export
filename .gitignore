@@ -12,3 +12,8 @@ dicty-stats/strains_group_by_phenotype.csv
 ora2arango/cgm-ddb-content.tar.gz
 ora2arango/cgm_ddb_tables.txt
 ora2arango/chado_tables.txt
+.aider*
+ora2arango/chado-content.tar.gz
+ora2arango/table_test.txt
+ora2arango/feature_clob.json
+ora2arango/featureprop.json
