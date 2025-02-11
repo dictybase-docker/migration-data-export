@@ -7,8 +7,9 @@ StandardOpenOption = Java.type("java.nio.file.StandardOpenOption")
 String = Java.type("java.lang.String")
 
 cwd = FileUtils.getCWD(ctx);
-outputPath = Paths.get(cwd, "/","feature_clob.csv")
-Files.writeString(outputPath, "", StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+outputPath = Paths.get(cwd, "feature_clob.csv")
+Files.deleteIfExists(outputPath)
+Files.createFile(outputPath)
 
 var stmt = `
 SELECT 
@@ -22,7 +23,6 @@ WHERE residues IS NOT NULL
 
 ret = util.executeReturnList(stmt, {})
 ret.forEach(function(row){
-	ctx.write(row.FEATURE_ID)
 	reader = row.RESIDUES.getCharacterStream()
 	content = new BufferedReader(reader)
         	 .lines()
