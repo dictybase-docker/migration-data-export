@@ -21,3 +21,5 @@ ora2arango/featureprop_clob.json
 ora2arango/featureprop_clob.csv
 ora2arango/featureprop_clob.csv.gz
 ora2arango/feature_clob.csv
+ora2arango/dbxref.csv
+ora2arango/feature_clob.csv.gz
