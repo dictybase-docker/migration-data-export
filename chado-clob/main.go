@@ -21,11 +21,10 @@ func main() {
 				Required: true,
 			},
 			&cli.IntFlag{
-				Name:     "port",
-				Aliases:  []string{"P"},
-				Usage:    "Database port",
-				Value:    1521,
-				Required: true,
+				Name:    "port",
+				Aliases: []string{"P"},
+				Usage:   "Database port",
+				Value:   1521,
 			},
 			&cli.StringFlag{
 				Name:     "service",
