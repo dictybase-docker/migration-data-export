@@ -4,8 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
-	"path/filepath"
-	"strings"
 
 	go_ora "github.com/sijms/go-ora/v2"
 	"github.com/urfave/cli/v2"
@@ -27,12 +25,6 @@ WHERE
 ORDER BY 
     c.table_name, 
     c.column_name`
-
-type TableMeta struct {
-	Columns    []string
-	SelectStmt string
-	OutputFile string
-}
 
 func main() {
 	app := &cli.App{
@@ -114,6 +106,9 @@ func clobStatsAction(cltx *cli.Context) error {
 	if err != nil {
 		return cli.Exit(fmt.Sprintf("Error processing rows: %v", err), 1)
 	}
+	if err := processClobData(dbh, clobColumns); err != nil {
+		return cli.Exit(err.Error(), 2)
+	}
 
 	return nil
 }
@@ -134,82 +129,6 @@ func setupDatabaseConnection(cltx *cli.Context) (*sql.DB, error) {
 	}
 
 	return dbh, nil
-}
-
-func queryClobTables(dbh *sql.DB, user string) (*sql.Rows, error) {
-	rows, err := dbh.Query(clobQuery, user)
-	if err != nil {
-		return nil, fmt.Errorf("error in running the clob query %s", err)
-	}
-
-	return rows, nil
-}
-
-func Map[T any, U any](slice []T, f func(T) U) []U {
-	result := make([]U, 0)
-	for _, v := range slice {
-		result = append(result, f(v))
-	}
-
-	return result
-}
-
-func processClobRows(
-	rows *sql.Rows,
-	outputFolder string,
-) (map[string]*TableMeta, error) {
-	clobColumns := make(map[string]*TableMeta)
-
-	for rows.Next() {
-		var table, column string
-		if err := rows.Scan(&table, &column); err != nil {
-			return nil, fmt.Errorf(
-				"error scanning table %s: %w",
-				table,
-				err,
-			)
-		}
-
-		if _, exists := clobColumns[table]; !exists {
-			clobColumns[table] = &TableMeta{
-				OutputFile: filepath.Join(
-					outputFolder,
-					fmt.Sprintf("%s_clob_data.csv", strings.ToLower(table)),
-				),
-			}
-		}
-		clobColumns[table].Columns = append(clobColumns[table].Columns, column)
-	}
-	if err := rows.Err(); err != nil {
-		return clobColumns, fmt.Errorf("error in scanning rows %s", err)
-	}
-
-	// Assign generated select statements to table metadata
-	for table, meta := range clobColumns {
-		stmt := generateSelectStatement(
-			table,
-			meta.Columns,
-		)
-		clobColumns[table].SelectStmt = stmt
-	}
-
-	return clobColumns, nil
-}
-
-func buildNotNullCondition(col string) string {
-	return fmt.Sprintf("%s IS NOT NULL", col)
-}
-
-func generateSelectStatement(table string, columns []string) string {
-	conditions := Map(columns, buildNotNullCondition)
-
-	return fmt.Sprintf(
-		"SELECT %s_ID,%s FROM %s WHERE %s",
-		table,
-		strings.Join(columns, ","),
-		table,
-		strings.Join(conditions, " OR "),
-	)
 }
 
 func pingAction(cltx *cli.Context) error {
