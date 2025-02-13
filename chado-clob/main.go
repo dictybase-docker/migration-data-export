@@ -184,25 +184,30 @@ func processClobRows(
 		return clobColumns, fmt.Errorf("error in scanning rows %s", err)
 	}
 
-	// Generate select statements before returning
-	generateSelectStatements(clobColumns)
+	// Assign generated select statements to table metadata
+	for table, meta := range clobColumns {
+		stmt := generateSelectStatement(
+			table,
+			meta.Columns,
+		)
+		clobColumns[table].SelectStmt = stmt
+	}
 
 	return clobColumns, nil
 }
 
-func generateSelectStatements(clobColumns map[string]*TableMeta) {
-	for table, meta := range clobColumns {
-		conditions := Map(meta.Columns, func(col string) string {
-			return fmt.Sprintf("%s IS NOT NULL", col)
-		})
-		meta.SelectStmt = fmt.Sprintf(
-			"SELECT %s_ID,%s FROM %s WHERE %s",
-			table,
-			strings.Join(meta.Columns, ","),
-			table,
-			strings.Join(conditions, " OR "),
-		)
-	}
+func generateSelectStatement(table string, columns []string) string {
+	conditions := Map(columns, func(col string) string {
+		return fmt.Sprintf("%s IS NOT NULL", col)
+	})
+	
+	return fmt.Sprintf(
+		"SELECT %s_ID,%s FROM %s WHERE %s",
+		table,
+		strings.Join(columns, ","),
+		table,
+		strings.Join(conditions, " OR "),
+	)
 }
 
 func pingAction(cltx *cli.Context) error {
