@@ -97,64 +97,82 @@ func main() {
 	}
 }
 
+// Refactor the function into smaller pieces. AI!
+func setupDatabaseConnection(cltx *cli.Context) (*sql.DB, error) {
+    connStr := go_ora.BuildUrl(
+        cltx.String("host"),
+        cltx.Int("port"),
+        cltx.String("service"),
+        cltx.String("user"),
+        cltx.String("password"),
+        nil,
+    )
+    return sql.Open("oracle", connStr)
+}
+
+func queryClobTables(db *sql.DB, user string) (*sql.Rows, error) {
+    return db.Query(clobQuery, user)
+}
+
+func processClobRows(rows *sql.Rows, outputFolder string) (map[string]*TableMeta, error) {
+    clobColumns := make(map[string]*TableMeta)
+    
+    for rows.Next() {
+        var table, column string
+        if err := rows.Scan(&table, &column); err != nil {
+            return nil, err
+        }
+        
+        if _, exists := clobColumns[table]; !exists {
+            clobColumns[table] = &TableMeta{
+                OutputFile: filepath.Join(
+                    outputFolder,
+                    fmt.Sprintf("%s_clob_data.csv", strings.ToLower(table)),
+                ),
+            }
+        }
+        clobColumns[table].Columns = append(clobColumns[table].Columns, column)
+    }
+    return clobColumns, rows.Err()
+}
+
+func generateSelectStatements(clobColumns map[string]*TableMeta) {
+    for table, meta := range clobColumns {
+        meta.SelectStmt = fmt.Sprintf(
+            "SELECT %s_ID,%s FROM %s",
+            table,
+            strings.Join(meta.Columns, ","),
+            table,
+        )
+    }
+}
+
 func clobStatsAction(cltx *cli.Context) error {
-	connStr := go_ora.BuildUrl(
-		cltx.String("host"),
-		cltx.Int("port"),
-		cltx.String("service"),
-		cltx.String("user"),
-		cltx.String("password"),
-		nil,
-	)
+    db, err := setupDatabaseConnection(cltx)
+    if err != nil {
+        return cli.Exit(fmt.Sprintf("Failed to connect: %v", err), 1)
+    }
+    defer db.Close()
 
-	db, err := sql.Open("oracle", connStr)
-	if err != nil {
-		return cli.Exit(fmt.Sprintf("Failed to connect: %v", err), 1)
-	}
-	defer db.Close()
+    rows, err := queryClobTables(db, cltx.String("user"))
+    if err != nil {
+        return cli.Exit(fmt.Sprintf("Query failed: %v", err), 1)
+    }
+    defer rows.Close()
 
-	rows, err := db.Query(clobQuery, cltx.String("user"))
-	if err != nil {
-		return cli.Exit(fmt.Sprintf("Query failed: %v", err), 1)
-	}
-	defer rows.Close()
+    clobColumns, err := processClobRows(rows, cltx.String("output-folder"))
+    if err != nil {
+        return cli.Exit(fmt.Sprintf("Error processing rows: %v", err), 1)
+    }
 
-	clobColumns := make(map[string]*TableMeta)
-	for rows.Next() {
-		var table, column string
-		if err := rows.Scan(&table, &column); err != nil {
-			return cli.Exit(fmt.Sprintf("Error scanning row: %v", err), 1)
-		}
-		if _, exists := clobColumns[table]; !exists {
-			clobColumns[table] = &TableMeta{
-				OutputFile: filepath.Join(
-					cltx.String("output-folder"),
-					fmt.Sprintf("%s_clob_data.csv", strings.ToLower(table)),
-				),
-			}
-		}
-		clobColumns[table].Columns = append(clobColumns[table].Columns, column)
-	}
+    generateSelectStatements(clobColumns)
 
-	// Generate SELECT statements for each table
-	for table, meta := range clobColumns {
-		meta.SelectStmt = fmt.Sprintf(
-			"SELECT %s_ID,%s FROM %s",
-			table,
-			strings.Join(meta.Columns, ","),
-			table,
-		)
-	}
-
-	// Print results
-	/* for _, meta := range clobColumns {
-		fmt.Printf(
-			"Query: %s\nOutput: %s\n\n",
-			meta.SelectStmt,
-			meta.OutputFile,
-		)
-	} */
-	return nil
+    // Uncomment to show generated queries
+    // for _, meta := range clobColumns {
+    //     fmt.Printf("Query: %s\nOutput: %s\n\n", meta.SelectStmt, meta.OutputFile)
+    // }
+    
+    return nil
 }
 
 func pingAction(cltx *cli.Context) error {
