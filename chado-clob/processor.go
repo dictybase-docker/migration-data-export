@@ -23,6 +23,7 @@ WHERE
     c.owner = :1 
     AND c.data_type = 'CLOB'
     AND t.num_rows > 0
+    AND c.table_name NOT IN ('FEATURE', 'FEATUREPROP')
 ORDER BY 
     c.table_name, 
     c.column_name`
