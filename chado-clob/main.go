@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"strings"
 
 	go_ora "github.com/sijms/go-ora/v2"
 	"github.com/urfave/cli/v2"
@@ -11,7 +12,7 @@ import (
 
 const clobQuery = `SELECT 
     c.table_name,
-    c.column_name,
+    c.column_name
 FROM 
     all_tab_columns c
 JOIN 
@@ -25,6 +26,12 @@ WHERE
 ORDER BY 
     c.table_name, 
     c.column_name`
+
+type TableMeta struct {
+	Columns    []string
+	SelectStmt string
+	OutputFile string
+}
 
 func main() {
 	app := &cli.App{
@@ -105,19 +112,41 @@ func clobStatsAction(cltx *cli.Context) error {
 	}
 	defer rows.Close()
 
-	fmt.Println("Tables with CLOB columns containing ")
-	var table, column string
+	clobColumns := make(map[string]*TableMeta)
 	for rows.Next() {
-		err := rows.Scan(&table, &column)
-		if err != nil {
+		var table, column string
+		if err := rows.Scan(&table, &column); err != nil {
 			return cli.Exit(fmt.Sprintf("Error scanning row: %v", err), 1)
 		}
-		fmt.Printf(
-			"Table: %-25s Column: %-20s \n",
+		if _, exists := clobColumns[table]; !exists {
+			clobColumns[table] = &TableMeta{
+				OutputFile: fmt.Sprintf(
+					"%s_clob_data.csv",
+					strings.ToLower(table),
+				),
+			}
+		}
+		clobColumns[table].Columns = append(clobColumns[table].Columns, column)
+	}
+
+	// Generate SELECT statements for each table
+	for table, meta := range clobColumns {
+		meta.SelectStmt = fmt.Sprintf(
+			"SELECT %s_ID,%s FROM %s",
 			table,
-			column,
+			strings.Join(meta.Columns, ","),
+			table,
 		)
 	}
+
+	// Print results
+	/* for _, meta := range clobColumns {
+		fmt.Printf(
+			"Query: %s\nOutput: %s\n\n",
+			meta.SelectStmt,
+			meta.OutputFile,
+		)
+	} */
 	return nil
 }
 
