@@ -181,11 +181,6 @@ func clobStatsAction(cltx *cli.Context) error {
 
 	generateSelectStatements(clobColumns)
 
-	// Uncomment to show generated queries
-	// for _, meta := range clobColumns {
-	//     fmt.Printf("Query: %s\nOutput: %s\n\n", meta.SelectStmt, meta.OutputFile)
-	// }
-
 	return nil
 }
 
