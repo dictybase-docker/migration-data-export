@@ -10,6 +10,23 @@ import (
 	"github.com/georgysavva/scany/v2/sqlscan"
 )
 
+const clobQuery = `SELECT 
+    c.table_name,
+    c.column_name
+FROM 
+    all_tab_columns c
+JOIN 
+    all_tables t 
+    ON c.owner = t.owner 
+    AND c.table_name = t.table_name
+WHERE 
+    c.owner = :1 
+    AND c.data_type = 'CLOB'
+    AND t.num_rows > 0
+ORDER BY 
+    c.table_name, 
+    c.column_name`
+
 type TableMeta struct {
 	Columns    []string
 	SelectStmt string
