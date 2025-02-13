@@ -134,6 +134,12 @@ func processClobRows(rows *sql.Rows, outputFolder string) (map[string]*TableMeta
         clobColumns[table].Columns = append(clobColumns[table].Columns, column)
     }
     return clobColumns, rows.Err()
+func Map[T any, U any](slice []T, f func(T) U) []U {
+	result := make([]U, 0)
+	for _, v := range slice {
+		result = append(result, f(v))
+	}
+	return result
 }
 
 func generateSelectStatements(clobColumns map[string]*TableMeta) {
