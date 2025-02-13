@@ -106,11 +106,22 @@ func setupDatabaseConnection(cltx *cli.Context) (*sql.DB, error) {
 		cltx.String("password"),
 		nil,
 	)
-	return sql.Open("oracle", connStr)
+
+	dbh, err := sql.Open("oracle", connStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open database connection: %w", err)
+	}
+
+	return dbh, nil
 }
 
-func queryClobTables(db *sql.DB, user string) (*sql.Rows, error) {
-	return db.Query(clobQuery, user)
+func queryClobTables(dbh *sql.DB, user string) (*sql.Rows, error) {
+	rows, err := dbh.Query(clobQuery, user)
+	if err != nil {
+		return nil, fmt.Errorf("error in running the clob query %s", err)
+	}
+
+	return rows, nil
 }
 
 func Map[T any, U any](slice []T, f func(T) U) []U {
@@ -118,6 +129,7 @@ func Map[T any, U any](slice []T, f func(T) U) []U {
 	for _, v := range slice {
 		result = append(result, f(v))
 	}
+
 	return result
 }
 
@@ -130,7 +142,11 @@ func processClobRows(
 	for rows.Next() {
 		var table, column string
 		if err := rows.Scan(&table, &column); err != nil {
-			return nil, err
+			return nil, fmt.Errorf(
+				"error scanning table %s: %w",
+				table,
+				err,
+			)
 		}
 
 		if _, exists := clobColumns[table]; !exists {
@@ -143,6 +159,7 @@ func processClobRows(
 		}
 		clobColumns[table].Columns = append(clobColumns[table].Columns, column)
 	}
+
 	return clobColumns, rows.Err()
 }
 
@@ -162,13 +179,13 @@ func generateSelectStatements(clobColumns map[string]*TableMeta) {
 }
 
 func clobStatsAction(cltx *cli.Context) error {
-	db, err := setupDatabaseConnection(cltx)
+	dbh, err := setupDatabaseConnection(cltx)
 	if err != nil {
 		return cli.Exit(fmt.Sprintf("Failed to connect: %v", err), 1)
 	}
-	defer db.Close()
+	defer dbh.Close()
 
-	rows, err := queryClobTables(db, cltx.String("user"))
+	rows, err := queryClobTables(dbh, cltx.String("user"))
 	if err != nil {
 		return cli.Exit(fmt.Sprintf("Query failed: %v", err), 1)
 	}
@@ -196,18 +213,19 @@ func pingAction(cltx *cli.Context) error {
 	)
 
 	// Open database connection
-	db, err := sql.Open("oracle", connStr)
+	dbh, err := sql.Open("oracle", connStr)
 	if err != nil {
 		return cli.Exit(fmt.Sprintf("Failed to connect: %v", err), 1)
 	}
-	defer db.Close()
+	defer dbh.Close()
 
 	// Test connection
-	err = db.Ping()
+	err = dbh.Ping()
 	if err != nil {
 		return cli.Exit(fmt.Sprintf("Connection failed: %v", err), 1)
 	}
 
 	fmt.Println("Successfully connected to Oracle database!")
+
 	return nil
 }
