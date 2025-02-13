@@ -1,5 +1,53 @@
 package main
 
+import "strings"
+
+// GetStructForTable returns the appropriate struct type for a given table name
+func GetStructForTable(tableName string) interface{} {
+    switch strings.ToLower(tableName) {
+    case "cvprop":
+        return &Cvprop{}
+    case "featurecvtermprop":
+        return &FeatureCvtermprop{}
+    case "featurepubprop":
+        return &FeaturePubprop{}
+    case "organism":
+        return &Organism{}
+    case "pubprop":
+        return &Pubprop{}
+    case "analysis":
+        return &Analysis{}
+    case "chadologs":
+        return &ChadoLogs{}
+    case "dbxref":
+        return &Dbxref{}
+    case "featureloc":
+        return &Featureloc{}
+    case "cv":
+        return &Cv{}
+    case "feature":
+        return &Feature{}
+    case "pub":
+        return &Pub{}
+    case "arraydesign":
+        return &Arraydesign{}
+    case "chadoprop":
+        return &Chadoprop{}
+    case "cvterm":
+        return &Cvterm{}
+    case "featureprop":
+        return &Featureprop{}
+    case "featurerelationship":
+        return &FeatureRelationship{}
+    case "mvgenedescription":
+        return &MvGeneDescription{}
+    case "phenotype":
+        return &Phenotype{}
+    default:
+        return nil
+    }
+}
+
 type Cvprop struct {
     CvpropID int    // PRIMARY KEY
     Value    string // from VALUE column
