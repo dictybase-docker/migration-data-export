@@ -97,6 +97,27 @@ func main() {
 	}
 }
 
+func clobStatsAction(cltx *cli.Context) error {
+	dbh, err := setupDatabaseConnection(cltx)
+	if err != nil {
+		return cli.Exit(fmt.Sprintf("Failed to connect: %v", err), 1)
+	}
+	defer dbh.Close()
+
+	rows, err := queryClobTables(dbh, cltx.String("user"))
+	if err != nil {
+		return cli.Exit(fmt.Sprintf("Query failed: %v", err), 1)
+	}
+	defer rows.Close()
+
+	clobColumns, err := processClobRows(rows, cltx.String("output-folder"))
+	if err != nil {
+		return cli.Exit(fmt.Sprintf("Error processing rows: %v", err), 1)
+	}
+
+	return nil
+}
+
 func setupDatabaseConnection(cltx *cli.Context) (*sql.DB, error) {
 	connStr := go_ora.BuildUrl(
 		cltx.String("host"),
@@ -159,8 +180,14 @@ func processClobRows(
 		}
 		clobColumns[table].Columns = append(clobColumns[table].Columns, column)
 	}
+	if err := rows.Err(); err != nil {
+		return clobColumns, fmt.Errorf("error in scanning rows %s", err)
+	}
 
-	return clobColumns, rows.Err()
+	// Generate select statements before returning
+	generateSelectStatements(clobColumns)
+
+	return clobColumns, nil
 }
 
 func generateSelectStatements(clobColumns map[string]*TableMeta) {
@@ -176,29 +203,6 @@ func generateSelectStatements(clobColumns map[string]*TableMeta) {
 			strings.Join(conditions, " OR "),
 		)
 	}
-}
-
-func clobStatsAction(cltx *cli.Context) error {
-	dbh, err := setupDatabaseConnection(cltx)
-	if err != nil {
-		return cli.Exit(fmt.Sprintf("Failed to connect: %v", err), 1)
-	}
-	defer dbh.Close()
-
-	rows, err := queryClobTables(dbh, cltx.String("user"))
-	if err != nil {
-		return cli.Exit(fmt.Sprintf("Query failed: %v", err), 1)
-	}
-	defer rows.Close()
-
-	clobColumns, err := processClobRows(rows, cltx.String("output-folder"))
-	if err != nil {
-		return cli.Exit(fmt.Sprintf("Error processing rows: %v", err), 1)
-	}
-
-	generateSelectStatements(clobColumns)
-
-	return nil
 }
 
 func pingAction(cltx *cli.Context) error {
