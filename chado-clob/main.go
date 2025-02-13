@@ -196,11 +196,13 @@ func processClobRows(
 	return clobColumns, nil
 }
 
+func buildNotNullCondition(col string) string {
+	return fmt.Sprintf("%s IS NOT NULL", col)
+}
+
 func generateSelectStatement(table string, columns []string) string {
-	conditions := Map(columns, func(col string) string {
-		return fmt.Sprintf("%s IS NOT NULL", col)
-	})
-	
+	conditions := Map(columns, buildNotNullCondition)
+
 	return fmt.Sprintf(
 		"SELECT %s_ID,%s FROM %s WHERE %s",
 		table,
