@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	go_ora "github.com/sijms/go-ora/v2"
@@ -80,6 +81,12 @@ func main() {
 				Usage:    "Database password",
 				Required: true,
 			},
+			&cli.StringFlag{
+				Name:    "output-folder",
+				Aliases: []string{"o"},
+				Usage:   "Output directory for CSV files",
+				Value:   ".",
+			},
 		},
 		Action: clobStatsAction,
 	}
@@ -120,9 +127,9 @@ func clobStatsAction(cltx *cli.Context) error {
 		}
 		if _, exists := clobColumns[table]; !exists {
 			clobColumns[table] = &TableMeta{
-				OutputFile: fmt.Sprintf(
-					"%s_clob_data.csv",
-					strings.ToLower(table),
+				OutputFile: filepath.Join(
+					cltx.String("output-folder"),
+					fmt.Sprintf("%s_clob_data.csv", strings.ToLower(table)),
 				),
 			}
 		}
