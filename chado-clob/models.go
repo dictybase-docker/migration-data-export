@@ -66,7 +66,7 @@ type FeaturePubprop struct {
 
 type Organism struct {
 	OrganismID int
-	Comment    string `gorm:"column:COMMENT_"`
+	Comment    string `db:"COMMENT_"`
 }
 
 type Pubprop struct {
