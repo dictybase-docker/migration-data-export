@@ -3,6 +3,7 @@ module github.com/dictybase/chado-clob
 go 1.23.5
 
 require (
+	github.com/georgysavva/scany/v2 v2.1.3
 	github.com/sijms/go-ora/v2 v2.8.23
 	github.com/urfave/cli/v2 v2.27.1
 )
