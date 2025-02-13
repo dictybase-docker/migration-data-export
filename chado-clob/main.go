@@ -151,7 +151,6 @@ func generateSelectStatements(clobColumns map[string]*TableMeta) {
 		conditions := Map(meta.Columns, func(col string) string {
 			return fmt.Sprintf("%s IS NOT NULL", col)
 		})
-
 		meta.SelectStmt = fmt.Sprintf(
 			"SELECT %s_ID,%s FROM %s WHERE %s",
 			table,
