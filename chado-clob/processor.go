@@ -22,7 +22,7 @@ WHERE
     c.owner = :1 
     AND c.data_type = 'CLOB'
     AND t.num_rows > 0
-    AND c.table_name NOT IN ('FEATURE', 'FEATUREPROP')
+    AND c.table_name NOT IN ('FEATURE', 'FEATUREPROP', "CHADO_LOGS")
     AND NOT EXISTS (
         SELECT 1 
         FROM all_mviews mv 
