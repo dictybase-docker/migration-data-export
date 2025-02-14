@@ -1,25 +1,20 @@
 package main
 
 import (
-	"compress/gzip"
 	"encoding/csv"
 	"fmt"
 	"os"
 	"reflect"
 )
 
-type CSVGzipWriter struct {
+type CSVWriter struct {
 	*csv.Writer
-	gzWriter *gzip.Writer
-	file     *os.File
+	file *os.File
 }
 
-func (csvw *CSVGzipWriter) Close() error {
+func (csvw *CSVWriter) Close() error {
 	csvw.Flush()
 	if err := csvw.Error(); err != nil {
-		return err
-	}
-	if err := csvw.gzWriter.Close(); err != nil {
 		return err
 	}
 	return csvw.file.Close()
@@ -60,23 +55,20 @@ func getCSVHeader(record interface{}) []string {
 func createCSVWriter(
 	outputFile string,
 	record interface{},
-) (*CSVGzipWriter, error) {
-	file, err := os.Create(fmt.Sprintf("%s.gz", outputFile))
+) (*CSVWriter, error) {
+	file, err := os.Create(outputFile)
 	if err != nil {
 		return nil, fmt.Errorf("error creating file: %w", err)
 	}
 
-	gzWriter := gzip.NewWriter(file)
-	csvWriter := csv.NewWriter(gzWriter)
-
+	csvWriter := csv.NewWriter(file)
 	if err := csvWriter.Write(getCSVHeader(record)); err != nil {
 		file.Close()
 		return nil, fmt.Errorf("error writing headers: %w", err)
 	}
 
-	return &CSVGzipWriter{
-		Writer:   csvWriter,
-		gzWriter: gzWriter,
-		file:     file,
+	return &CSVWriter{
+		Writer: csvWriter,
+		file:   file,
 	}, nil
 }
