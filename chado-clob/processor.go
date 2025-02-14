@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"encoding/csv"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -94,12 +93,12 @@ func processSingleTable(dbh *sql.DB, tableName string, meta *TableMeta) error {
 	if err != nil {
 		return fmt.Errorf("error creating CSV writer: %w", err)
 	}
+	defer writer.Close()
 
 	if err := processTableRows(dbh, meta.SelectStmt, tableName, record, writer); err != nil {
 		return err
 	}
-	writer.Flush()
-	return writer.Error()
+	return nil
 }
 
 func processTableRows(
@@ -107,7 +106,7 @@ func processTableRows(
 	query string,
 	tableName string,
 	record interface{},
-	writer *csv.Writer,
+	writer *CSVGzipWriter,
 ) error {
 	rows, err := dbh.Query(query)
 	if err != nil {
@@ -120,16 +119,24 @@ func processTableRows(
 			return fmt.Errorf("error scanning row in %s: %w", tableName, err)
 		}
 
-		row, err := structToCSVRow(record)
+		csvrow, err := structToCSVRow(record)
 		if err != nil {
 			return fmt.Errorf("conversion error: %w", err)
 		}
 
-		if err := writer.Write(row); err != nil {
+		if err := writer.Write(csvrow); err != nil {
 			return fmt.Errorf("CSV write error: %w", err)
 		}
 	}
-	return rows.Err()
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf(
+			"error in scanning rows for table %s %s",
+			tableName,
+			err,
+		)
+	}
+
+	return nil
 }
 
 func Map[T any, U any](slice []T, f func(T) U) []U {
