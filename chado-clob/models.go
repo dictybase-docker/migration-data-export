@@ -8,9 +8,9 @@ func GetStructForTable(tableName string) (interface{}, bool) {
 	switch strings.ToLower(tableName) {
 	case "cvprop":
 		return &Cvprop{}, true
-	case "featurecvtermprop":
+	case "feature_cvtermprop":
 		return &FeatureCvtermprop{}, true
-	case "featurepubprop":
+	case "feature_pubprop":
 		return &FeaturePubprop{}, true
 	case "organism":
 		return &Organism{}, true
@@ -38,7 +38,7 @@ func GetStructForTable(tableName string) (interface{}, bool) {
 		return &Cvterm{}, true
 	case "featureprop":
 		return &Featureprop{}, true
-	case "featurerelationship":
+	case "feature_relationship":
 		return &FeatureRelationship{}, true
 	case "mvgenedescription":
 		return &MvGeneDescription{}, true
