@@ -23,6 +23,12 @@ WHERE
     AND c.data_type = 'CLOB'
     AND t.num_rows > 0
     AND c.table_name NOT IN ('FEATURE', 'FEATUREPROP')
+    AND NOT EXISTS (
+        SELECT 1 
+        FROM all_mviews mv 
+        WHERE mv.owner = c.owner 
+        AND mv.mview_name = c.table_name
+    )
 ORDER BY 
     c.table_name, 
     c.column_name`
@@ -106,7 +112,7 @@ func processTableRows(
 	query string,
 	tableName string,
 	record interface{},
-	writer *CSVGzipWriter,
+	writer *CSVWriter,
 ) error {
 	rows, err := dbh.Query(query)
 	if err != nil {
