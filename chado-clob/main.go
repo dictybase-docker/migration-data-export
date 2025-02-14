@@ -89,6 +89,9 @@ func clobStatsAction(cltx *cli.Context) error {
 	if err != nil {
 		return cli.Exit(fmt.Sprintf("Error processing rows: %v", err), 1)
 	}
+	/* for tableName, meta := range clobColumns {
+		fmt.Printf("table: %s | statement: %s\n", tableName, meta.SelectStmt)
+	} */
 	if err := processClobData(dbh, clobColumns); err != nil {
 		return cli.Exit(err.Error(), 2)
 	}

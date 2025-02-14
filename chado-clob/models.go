@@ -77,7 +77,7 @@ type Pubprop struct {
 type Analysis struct {
 	AnalysisID  int    `db:"ANALYSIS_ID"`
 	Description string `db:"DESCRIPTION"`
-	Sourceuri   string `db:"SOURCE_URI"`
+	Sourceuri   string `db:"SOURCEURI"`
 }
 
 type ChadoLogs struct {
@@ -109,7 +109,7 @@ type Feature struct {
 type Pub struct {
 	PubID       int    `db:"PUB_ID"`
 	Title       string `db:"TITLE"`
-	Volumetitle string `db:"VOLUME_TITLE"`
+	Volumetitle string `db:"VOLUMETITLE"`
 }
 
 type Arraydesign struct {
