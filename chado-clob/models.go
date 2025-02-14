@@ -50,102 +50,102 @@ func GetStructForTable(tableName string) (interface{}, bool) {
 }
 
 type Cvprop struct {
-	CvpropID int    // PRIMARY KEY
-	Value    string // from VALUE column
+	CvpropID int    `db:"CVPROP_ID"` // PRIMARY KEY
+	Value    string `db:"VALUE"`
 }
 
 type FeatureCvtermprop struct {
-	FeatureCvtermpropID int
-	Value               string
+	FeatureCvtermpropID int    `db:"FEATURE_CVTERMPROP_ID"`
+	Value               string `db:"VALUE"`
 }
 
 type FeaturePubprop struct {
-	FeaturePubpropID int
-	Value            string
+	FeaturePubpropID int    `db:"FEATURE_PUBPROP_ID"`
+	Value            string `db:"VALUE"`
 }
 
 type Organism struct {
-	OrganismID int
+	OrganismID int    `db:"ORGANISM_ID"`
 	Comment    string `db:"COMMENT_"`
 }
 
 type Pubprop struct {
-	PubpropID int
-	Value     string
+	PubpropID int    `db:"PUBPROP_ID"`
+	Value     string `db:"VALUE"`
 }
 
 type Analysis struct {
-	AnalysisID  int
-	Description string
-	Sourceuri   string
+	AnalysisID  int    `db:"ANALYSIS_ID"`
+	Description string `db:"DESCRIPTION"`
+	Sourceuri   string `db:"SOURCE_URI"`
 }
 
 type ChadoLogs struct {
-	ChadoLogsID int
-	NewValue    string
-	OldValue    string
+	ChadoLogsID int    `db:"CHADO_LOGS_ID"`
+	NewValue    string `db:"NEW_VALUE"`
+	OldValue    string `db:"OLD_VALUE"`
 }
 
 type Dbxref struct {
-	DbxrefID    int
-	Description string
+	DbxrefID    int    `db:"DBXREF_ID"`
+	Description string `db:"DESCRIPTION"`
 }
 
 type Featureloc struct {
-	FeaturelocID int
-	ResidueInfo  string
+	FeaturelocID int    `db:"FEATURELOC_ID"`
+	ResidueInfo  string `db:"RESIDUE_INFO"`
 }
 
 type Cv struct {
-	CvID       int
-	Definition string
+	CvID       int    `db:"CV_ID"`
+	Definition string `db:"DEFINITION"`
 }
 
 type Feature struct {
-	FeatureID int
-	Residues  string
+	FeatureID int    `db:"FEATURE_ID"`
+	Residues  string `db:"RESIDUES"`
 }
 
 type Pub struct {
-	PubID       int
-	Title       string
-	Volumetitle string
+	PubID       int    `db:"PUB_ID"`
+	Title       string `db:"TITLE"`
+	Volumetitle string `db:"VOLUME_TITLE"`
 }
 
 type Arraydesign struct {
-	ArraydesignID     int
-	ArrayDimensions   string
-	Description       string
-	ElementDimensions string
-	Version           string
+	ArraydesignID     int    `db:"ARRAYDESIGN_ID"`
+	ArrayDimensions   string `db:"ARRAY_DIMENSIONS"`
+	Description       string `db:"DESCRIPTION"`
+	ElementDimensions string `db:"ELEMENT_DIMENSIONS"`
+	Version           string `db:"VERSION"`
 }
 
 type Chadoprop struct {
-	ChadopropID int
-	Value       string
+	ChadopropID int    `db:"CHADOPROP_ID"`
+	Value       string `db:"VALUE"`
 }
 
 type Cvterm struct {
-	CvtermID   int
-	Definition string
+	CvtermID   int    `db:"CVTERM_ID"`
+	Definition string `db:"DEFINITION"`
 }
 
 type Featureprop struct {
-	FeaturepropID int
-	Value         string
+	FeaturepropID int    `db:"FEATUREPROP_ID"`
+	Value         string `db:"VALUE"`
 }
 
 type FeatureRelationship struct {
-	FeatureRelationshipID int
-	Value                 string
+	FeatureRelationshipID int    `db:"FEATURE_RELATIONSHIP_ID"`
+	Value                 string `db:"VALUE"`
 }
 
 type MvGeneDescription struct {
-	MvGeneDescriptionID int
-	Description         string
+	MvGeneDescriptionID int    `db:"MV_GENE_DESCRIPTION_ID"`
+	Description         string `db:"DESCRIPTION"`
 }
 
 type Phenotype struct {
-	PhenotypeID int
-	Value       string
+	PhenotypeID int    `db:"PHENOTYPE_ID"`
+	Value       string `db:"VALUE"`
 }
