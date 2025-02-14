@@ -121,7 +121,7 @@ func processTableRows(
 	defer rows.Close()
 
 	for rows.Next() {
-		if err := sqlscan.ScanOne(record, rows); err != nil {
+		if err := sqlscan.ScanRow(record, rows); err != nil {
 			return fmt.Errorf("error scanning row in %s: %w", tableName, err)
 		}
 
