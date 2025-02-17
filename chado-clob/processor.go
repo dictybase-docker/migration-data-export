@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/georgysavva/scany/v2/sqlscan"
+	"github.com/jmoiron/sqlx"
 )
 
 const clobQuery = `SELECT 
@@ -81,47 +81,61 @@ func processClobRows(
 }
 
 func processClobData(dbh *sql.DB, clobColumns map[string]*TableMeta) error {
+	// Create single sqlx instance for all tables
+	sqlxDB := sqlx.NewDb(dbh, "oracle")
+
 	for tableName, meta := range clobColumns {
-		if err := processSingleTable(dbh, tableName, meta); err != nil {
+		record, found := GetStructForTable(tableName)
+		if !found {
+			return fmt.Errorf(
+				"no struct mapping found for table: %s",
+				tableName,
+			)
+		}
+
+		writer, err := createCSVWriter(meta.OutputFile, record)
+		if err != nil {
+			return fmt.Errorf("error creating CSV writer: %w", err)
+		}
+
+		// Process rows
+		err = processTableRows(
+			sqlxDB,
+			meta.SelectStmt,
+			tableName,
+			record,
+			writer,
+		)
+
+		// Close immediately after processing instead of deferring
+		if closeErr := writer.Close(); closeErr != nil {
+			if err == nil { // Preserve original error if any
+				err = fmt.Errorf("error closing writer: %w", closeErr)
+			}
+		}
+		if err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func processSingleTable(dbh *sql.DB, tableName string, meta *TableMeta) error {
-	record, found := GetStructForTable(tableName)
-	if !found {
-		return fmt.Errorf("no struct mapping found for table: %s", tableName)
-	}
-
-	writer, err := createCSVWriter(meta.OutputFile, record)
-	if err != nil {
-		return fmt.Errorf("error creating CSV writer: %w", err)
-	}
-	defer writer.Close()
-
-	if err := processTableRows(dbh, meta.SelectStmt, tableName, record, writer); err != nil {
-		return err
-	}
-	return nil
-}
-
 func processTableRows(
-	dbh *sql.DB,
+	dbh *sqlx.DB,
 	query string,
 	tableName string,
 	record interface{},
 	writer *CSVWriter,
 ) error {
-	rows, err := dbh.Query(query)
+	rows, err := dbh.Queryx(query)
 	if err != nil {
 		return fmt.Errorf("query failed for %s: %w", tableName, err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		if err := sqlscan.ScanRow(record, rows); err != nil {
+		// Reset the struct for each row
+		if err := rows.StructScan(record); err != nil {
 			return fmt.Errorf("error scanning row in %s: %w", tableName, err)
 		}
 
@@ -136,7 +150,7 @@ func processTableRows(
 	}
 	if err := rows.Err(); err != nil {
 		return fmt.Errorf(
-			"error in scanning rows for table %s %s",
+			"error in scanning rows for table %s %w",
 			tableName,
 			err,
 		)
