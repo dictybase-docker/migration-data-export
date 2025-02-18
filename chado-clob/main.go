@@ -9,20 +9,30 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+type OracleApp struct {
+	cltx *cli.Context
+}
+
 func main() {
 	app := &cli.App{
 		Name:  "oracle-ping",
 		Usage: "Analyze Oracle database schema",
 		Commands: []*cli.Command{
 			{
-				Name:   "ping",
-				Usage:  "Test database connectivity",
-				Action: pingAction,
+				Name:  "ping",
+				Usage: "Test database connectivity",
+				Action: func(cltx *cli.Context) error {
+					orc := &OracleApp{cltx: cltx}
+					return orc.pingAction()
+				},
 			},
 			{
-				Name:   "clob-stats",
-				Usage:  "List tables with populated CLOB columns",
-				Action: clobStatsAction,
+				Name:  "clob-stats",
+				Usage: "List tables with populated CLOB columns",
+				Action: func(cltx *cli.Context) error {
+					orc := &OracleApp{cltx: cltx}
+					return orc.clobStatsAction()
+				},
 			},
 		},
 		Flags: []cli.Flag{
@@ -63,7 +73,10 @@ func main() {
 				Value:   ".",
 			},
 		},
-		Action: clobStatsAction,
+		Action: func(c *cli.Context) error {
+			orc := &OracleApp{cltx: c}
+			return orc.clobStatsAction()
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -72,40 +85,40 @@ func main() {
 	}
 }
 
-func clobStatsAction(cltx *cli.Context) error {
-	dbh, err := setupDatabaseConnection(cltx)
+func (orc *OracleApp) clobStatsAction() error {
+	dbh, err := orc.setupDatabaseConnection()
 	if err != nil {
 		return cli.Exit(fmt.Sprintf("Failed to connect: %v", err), 1)
 	}
 	defer dbh.Close()
 
-	rows, err := queryClobTables(dbh, cltx.String("user"))
+	rows, err := orc.queryClobTables(dbh, orc.cltx.String("user"))
 	if err != nil {
 		return cli.Exit(fmt.Sprintf("Query failed: %v", err), 1)
 	}
 	defer rows.Close()
 
-	clobColumns, err := processClobRows(rows, cltx.String("output-folder"))
+	clobColumns, err := orc.processClobRows(rows, orc.cltx.String("output-folder"))
 	if err != nil {
 		return cli.Exit(fmt.Sprintf("Error processing rows: %v", err), 1)
 	}
 	/* for tableName, meta := range clobColumns {
 		fmt.Printf("table: %s | statement: %s\n", tableName, meta.SelectStmt)
 	} */
-	if err := processClobData(dbh, clobColumns); err != nil {
+	if err := orc.processClobData(dbh, clobColumns); err != nil {
 		return cli.Exit(err.Error(), 2)
 	}
 
 	return nil
 }
 
-func setupDatabaseConnection(cltx *cli.Context) (*sql.DB, error) {
+func (orc *OracleApp) setupDatabaseConnection() (*sql.DB, error) {
 	connStr := go_ora.BuildUrl(
-		cltx.String("host"),
-		cltx.Int("port"),
-		cltx.String("service"),
-		cltx.String("user"),
-		cltx.String("password"),
+		orc.cltx.String("host"),
+		orc.cltx.Int("port"),
+		orc.cltx.String("service"),
+		orc.cltx.String("user"),
+		orc.cltx.String("password"),
 		nil,
 	)
 
@@ -117,7 +130,8 @@ func setupDatabaseConnection(cltx *cli.Context) (*sql.DB, error) {
 	return dbh, nil
 }
 
-func pingAction(cltx *cli.Context) error {
+func (orc *OracleApp) pingAction() error {
+	cltx := orc.cltx
 	// Build connection string
 	connStr := go_ora.BuildUrl(
 		cltx.String("host"),

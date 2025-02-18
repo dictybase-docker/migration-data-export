@@ -39,7 +39,7 @@ type TableMeta struct {
 	OutputFile string
 }
 
-func processClobRows(
+func (orc *OracleApp) processClobRows(
 	rows *sql.Rows,
 	outputFolder string,
 ) (map[string]*TableMeta, error) {
@@ -80,7 +80,10 @@ func processClobRows(
 	return clobColumns, nil
 }
 
-func processClobData(dbh *sql.DB, clobColumns map[string]*TableMeta) error {
+func (orc *OracleApp) processClobData(
+	dbh *sql.DB,
+	clobColumns map[string]*TableMeta,
+) error {
 	// Create single sqlx instance for all tables
 	sqlxDB := sqlx.NewDb(dbh, "oracle")
 
@@ -99,7 +102,7 @@ func processClobData(dbh *sql.DB, clobColumns map[string]*TableMeta) error {
 		}
 
 		// Process rows
-		err = processTableRows(
+		err = orc.processTableRows(
 			sqlxDB,
 			meta.SelectStmt,
 			tableName,
@@ -120,7 +123,7 @@ func processClobData(dbh *sql.DB, clobColumns map[string]*TableMeta) error {
 	return nil
 }
 
-func processTableRows(
+func (orc *OracleApp) processTableRows(
 	dbh *sqlx.DB,
 	query string,
 	tableName string,
@@ -182,7 +185,10 @@ func generateSelectStatement(table string, columns []string) string {
 	)
 }
 
-func queryClobTables(dbh *sql.DB, user string) (*sql.Rows, error) {
+func (orc *OracleApp) queryClobTables(
+	dbh *sql.DB,
+	user string,
+) (*sql.Rows, error) {
 	rows, err := dbh.Query(clobQuery, user)
 	if err != nil {
 		return nil, fmt.Errorf("error in running the clob query %s", err)
