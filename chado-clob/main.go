@@ -98,7 +98,10 @@ func (orc *OracleApp) clobStatsAction() error {
 	}
 	defer rows.Close()
 
-	clobColumns, err := orc.processClobRows(rows, orc.cltx.String("output-folder"))
+	clobColumns, err := orc.processClobRows(
+		rows,
+		orc.cltx.String("output-folder"),
+	)
 	if err != nil {
 		return cli.Exit(fmt.Sprintf("Error processing rows: %v", err), 1)
 	}
@@ -110,24 +113,6 @@ func (orc *OracleApp) clobStatsAction() error {
 	}
 
 	return nil
-}
-
-func (orc *OracleApp) setupDatabaseConnection() (*sql.DB, error) {
-	connStr := go_ora.BuildUrl(
-		orc.cltx.String("host"),
-		orc.cltx.Int("port"),
-		orc.cltx.String("service"),
-		orc.cltx.String("user"),
-		orc.cltx.String("password"),
-		nil,
-	)
-
-	dbh, err := sql.Open("oracle", connStr)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open database connection: %w", err)
-	}
-
-	return dbh, nil
 }
 
 func (orc *OracleApp) pingAction() error {

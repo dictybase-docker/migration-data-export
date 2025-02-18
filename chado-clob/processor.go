@@ -9,30 +9,6 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-const clobQuery = `SELECT 
-    c.table_name,
-    c.column_name
-FROM 
-    all_tab_columns c
-JOIN 
-    all_tables t 
-    ON c.owner = t.owner 
-    AND c.table_name = t.table_name
-WHERE 
-    c.owner = :1 
-    AND c.data_type = 'CLOB'
-    AND t.num_rows > 0
-    AND c.table_name NOT IN ('FEATURE', 'FEATUREPROP', 'CHADO_LOGS', 'CHADOPROP')
-    AND NOT EXISTS (
-        SELECT 1 
-        FROM all_mviews mv 
-        WHERE mv.owner = c.owner 
-        AND mv.mview_name = c.table_name
-    )
-ORDER BY 
-    c.table_name, 
-    c.column_name`
-
 type TableMeta struct {
 	Columns    []string
 	SelectStmt string
@@ -183,16 +159,4 @@ func generateSelectStatement(table string, columns []string) string {
 		table,
 		strings.Join(conditions, " OR "),
 	)
-}
-
-func (orc *OracleApp) queryClobTables(
-	dbh *sql.DB,
-	user string,
-) (*sql.Rows, error) {
-	rows, err := dbh.Query(clobQuery, user)
-	if err != nil {
-		return nil, fmt.Errorf("error in running the clob query %s", err)
-	}
-
-	return rows, nil
 }
