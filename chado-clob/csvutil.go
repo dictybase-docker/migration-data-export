@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/csv"
 	"fmt"
 	"os"
@@ -38,15 +39,26 @@ func NewCSVHandler() *CSVHandler {
 func (h *CSVHandler) ToRow(record interface{}) ([]string, error) {
 	val := reflect.ValueOf(record).Elem()
 	var row []string
+	
 	for i := 0; i < val.NumField(); i++ {
 		field := val.Field(i)
-		switch field.Kind() {
-		case reflect.Int, reflect.Int64:
+		fieldType := field.Type()
+
+		switch {
+		case fieldType == reflect.TypeOf(sql.NullString{}):
+			// Handle SQL NullString type
+			nullStr := field.Interface().(sql.NullString)
+			if nullStr.Valid {
+				row = append(row, nullStr.String)
+			} else {
+				row = append(row, "") // Empty string for NULL values
+			}
+		case fieldType.Kind() == reflect.Int:
 			row = append(row, fmt.Sprintf("%d", field.Int()))
-		case reflect.String:
+		case fieldType.Kind() == reflect.String:
 			row = append(row, field.String())
 		default:
-			return nil, fmt.Errorf("unsupported field type: %s", field.Kind())
+			return nil, fmt.Errorf("unsupported field type: %s", fieldType)
 		}
 	}
 	return row, nil
