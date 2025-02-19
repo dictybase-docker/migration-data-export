@@ -9,6 +9,8 @@ import (
 // Returns the struct instance and a boolean indicating if the table was found
 func GetStructForTable(tableName string) (interface{}, bool) {
 	switch strings.ToLower(tableName) {
+	case "organismprop":
+		return &Organismprop{}, true
 	case "cvprop":
 		return &Cvprop{}, true
 	case "feature_cvtermprop":
@@ -70,6 +72,11 @@ type FeaturePubprop struct {
 type Organism struct {
 	OrganismID int            `db:"ORGANISM_ID"`
 	Comment    sql.NullString `db:"COMMENT_"`
+}
+
+type Organismprop struct {
+	OrganismpropID int            `db:"ORGANISMPROP_ID"`
+	Value          sql.NullString `db:"VALUE"`
 }
 
 type Pubprop struct {
