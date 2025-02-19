@@ -45,8 +45,6 @@ func GetStructForTable(tableName string) (interface{}, bool) {
 		return &Featureprop{}, true
 	case "feature_relationship":
 		return &FeatureRelationship{}, true
-	case "mvgenedescription":
-		return &MvGeneDescription{}, true
 	case "phenotype":
 		return &Phenotype{}, true
 	default:
