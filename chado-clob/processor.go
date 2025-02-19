@@ -15,6 +15,14 @@ type TableMeta struct {
 	OutputFile string
 }
 
+type TableProcessRequest struct {
+	Db        *sqlx.DB
+	Query     string
+	TableName string
+	Record    interface{}
+	Writer    *CSVWriter
+}
+
 func (orc *OracleApp) processClobRows(
 	rows *sql.Rows,
 	outputFolder string,
@@ -79,13 +87,14 @@ func (orc *OracleApp) processClobData(
 		}
 
 		// Process rows
-		err = orc.processTableRows(
-			sqlxDB,
-			meta.SelectStmt,
-			tableName,
-			record,
-			writer,
-		)
+		// refactor this method to accept a type struct. AI!
+		err = orc.processTableRows(&TableProcessRequest{
+			Db:        sqlxDB,
+			Query:     meta.SelectStmt,
+			TableName: tableName,
+			Record:    record,
+			Writer:    writer,
+		})
 
 		// Close immediately after processing instead of deferring
 		if closeErr := writer.Close(); closeErr != nil {
@@ -100,42 +109,34 @@ func (orc *OracleApp) processClobData(
 	return nil
 }
 
-func (orc *OracleApp) processTableRows(
-	dbh *sqlx.DB,
-	query string,
-	tableName string,
-	record interface{},
-	writer *CSVWriter,
-) error {
-	rows, err := dbh.Queryx(query)
+func (orc *OracleApp) processTableRows(req *TableProcessRequest) error {
+	rows, err := req.Db.Queryx(req.Query)
 	if err != nil {
-		return fmt.Errorf("query failed for %s: %w", tableName, err)
+		return fmt.Errorf("query failed for %s: %w", req.TableName, err)
 	}
 	defer rows.Close()
 
-	// Create a single handler instance without record
 	handler := NewCSVHandler()
 
 	for rows.Next() {
-		// Reset the struct for each row
-		if err := rows.StructScan(record); err != nil {
-			return fmt.Errorf("error scanning row in %s: %w", tableName, err)
+		if err := rows.StructScan(req.Record); err != nil {
+			return fmt.Errorf("error scanning row in %s: %w", req.TableName, err)
 		}
 
-		// Pass current record to ToRow method
-		csvrow, err := handler.ToRow(record)
+		csvrow, err := handler.ToRow(req.Record)
 		if err != nil {
 			return fmt.Errorf("conversion error: %w", err)
 		}
 
-		if err := writer.Write(csvrow); err != nil {
+		if err := req.Writer.Write(csvrow); err != nil {
 			return fmt.Errorf("CSV write error: %w", err)
 		}
 	}
+	
 	if err := rows.Err(); err != nil {
 		return fmt.Errorf(
 			"error in scanning rows for table %s %w",
-			tableName,
+			req.TableName,
 			err,
 		)
 	}
