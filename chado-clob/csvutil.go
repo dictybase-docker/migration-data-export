@@ -58,7 +58,7 @@ func (h *CSVHandler) Header(record interface{}) []string {
 	var headers []string
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
-		if dbTag := field.Tag.Get("db"); dbTag != "" {
+		if dbTag, ok := field.Tag.Lookup("db"); ok {
 			headers = append(headers, dbTag)
 		} else {
 			headers = append(headers, field.Name)
@@ -67,7 +67,10 @@ func (h *CSVHandler) Header(record interface{}) []string {
 	return headers
 }
 
-func (h *CSVHandler) CreateWriter(outputFile string, record interface{}) (*CSVWriter, error) {
+func (h *CSVHandler) CreateWriter(
+	outputFile string,
+	record interface{},
+) (*CSVWriter, error) {
 	if err := validateRecord(record); err != nil {
 		return nil, err
 	}

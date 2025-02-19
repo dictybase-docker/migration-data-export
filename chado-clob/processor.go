@@ -86,8 +86,6 @@ func (orc *OracleApp) processClobData(
 			return fmt.Errorf("error creating CSV writer: %w", err)
 		}
 
-		// Process rows
-		// refactor this method to accept a type struct. AI!
 		err = orc.processTableRows(&TableProcessRequest{
 			Db:        sqlxDB,
 			Query:     meta.SelectStmt,
