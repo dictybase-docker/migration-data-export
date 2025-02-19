@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 
 	go_ora "github.com/sijms/go-ora/v2"
@@ -113,6 +114,14 @@ func (orc *OracleApp) clobStatsAction() error {
 	}
 
 	return nil
+}
+
+func getLogger() *log.Logger {
+	return log.New(
+		os.Stderr,
+		"[chado-clob] ",
+		log.LstdFlags|log.Lmsgprefix,
+	)
 }
 
 func (orc *OracleApp) pingAction() error {

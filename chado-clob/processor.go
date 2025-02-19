@@ -70,6 +70,7 @@ func (orc *OracleApp) processClobData(
 ) error {
 	// Create single sqlx instance for all tables
 	sqlxDB := sqlx.NewDb(dbh, "oracle")
+	log := getLogger()
 
 	for tableName, meta := range clobColumns {
 		record, found := GetStructForTable(tableName)
@@ -79,6 +80,8 @@ func (orc *OracleApp) processClobData(
 				tableName,
 			)
 		}
+
+		log.Printf("Exporting data for table: %s\n", tableName)
 
 		handler := NewCSVHandler()
 		writer, err := handler.CreateWriter(meta.OutputFile, record)
@@ -118,7 +121,11 @@ func (orc *OracleApp) processTableRows(req *TableProcessRequest) error {
 
 	for rows.Next() {
 		if err := rows.StructScan(req.Record); err != nil {
-			return fmt.Errorf("error scanning row in %s: %w", req.TableName, err)
+			return fmt.Errorf(
+				"error scanning row in %s: %w",
+				req.TableName,
+				err,
+			)
 		}
 
 		csvrow, err := handler.ToRow(req.Record)
@@ -130,7 +137,7 @@ func (orc *OracleApp) processTableRows(req *TableProcessRequest) error {
 			return fmt.Errorf("CSV write error: %w", err)
 		}
 	}
-	
+
 	if err := rows.Err(); err != nil {
 		return fmt.Errorf(
 			"error in scanning rows for table %s %w",
