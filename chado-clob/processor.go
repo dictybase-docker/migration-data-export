@@ -72,7 +72,8 @@ func (orc *OracleApp) processClobData(
 			)
 		}
 
-		writer, err := createCSVWriter(meta.OutputFile, record)
+		handler := NewCSVHandler()
+		writer, err := handler.CreateWriter(meta.OutputFile, record)
 		if err != nil {
 			return fmt.Errorf("error creating CSV writer: %w", err)
 		}
@@ -112,13 +113,17 @@ func (orc *OracleApp) processTableRows(
 	}
 	defer rows.Close()
 
+	// Create a single handler instance without record
+	handler := NewCSVHandler()
+
 	for rows.Next() {
 		// Reset the struct for each row
 		if err := rows.StructScan(record); err != nil {
 			return fmt.Errorf("error scanning row in %s: %w", tableName, err)
 		}
 
-		csvrow, err := structToCSVRow(record)
+		// Pass current record to ToRow method
+		csvrow, err := handler.ToRow(record)
 		if err != nil {
 			return fmt.Errorf("conversion error: %w", err)
 		}

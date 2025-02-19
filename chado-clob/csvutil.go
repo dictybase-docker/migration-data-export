@@ -12,6 +12,14 @@ type CSVWriter struct {
 	file *os.File
 }
 
+// NewCSVWriter creates a new CSVWriter instance
+func NewCSVWriter(writer *csv.Writer, file *os.File) *CSVWriter {
+	return &CSVWriter{
+		Writer: writer,
+		file:   file,
+	}
+}
+
 func (csvw *CSVWriter) Close() error {
 	csvw.Flush()
 	if err := csvw.Error(); err != nil {
@@ -20,7 +28,14 @@ func (csvw *CSVWriter) Close() error {
 	return csvw.file.Close()
 }
 
-func structToCSVRow(record interface{}) ([]string, error) {
+type CSVHandler struct{}
+
+// NewCSVHandler creates a new CSVHandler instance
+func NewCSVHandler() *CSVHandler {
+	return &CSVHandler{}
+}
+
+func (h *CSVHandler) ToRow(record interface{}) ([]string, error) {
 	val := reflect.ValueOf(record).Elem()
 	var row []string
 	for i := 0; i < val.NumField(); i++ {
@@ -37,7 +52,7 @@ func structToCSVRow(record interface{}) ([]string, error) {
 	return row, nil
 }
 
-func getCSVHeader(record interface{}) []string {
+func (h *CSVHandler) Header(record interface{}) []string {
 	val := reflect.ValueOf(record).Elem()
 	typ := val.Type()
 	var headers []string
@@ -52,23 +67,29 @@ func getCSVHeader(record interface{}) []string {
 	return headers
 }
 
-func createCSVWriter(
-	outputFile string,
-	record interface{},
-) (*CSVWriter, error) {
+func (h *CSVHandler) CreateWriter(outputFile string, record interface{}) (*CSVWriter, error) {
+	if err := validateRecord(record); err != nil {
+		return nil, err
+	}
+
 	file, err := os.Create(outputFile)
 	if err != nil {
 		return nil, fmt.Errorf("error creating file: %w", err)
 	}
 
 	csvWriter := csv.NewWriter(file)
-	if err := csvWriter.Write(getCSVHeader(record)); err != nil {
+	if err := csvWriter.Write(h.Header(record)); err != nil {
 		file.Close()
 		return nil, fmt.Errorf("error writing headers: %w", err)
 	}
 
-	return &CSVWriter{
-		Writer: csvWriter,
-		file:   file,
-	}, nil
+	return NewCSVWriter(csvWriter, file), nil
+}
+
+func validateRecord(record interface{}) error {
+	val := reflect.ValueOf(record)
+	if val.Kind() != reflect.Ptr || val.Elem().Kind() != reflect.Struct {
+		return fmt.Errorf("record must be a pointer to struct")
+	}
+	return nil
 }
