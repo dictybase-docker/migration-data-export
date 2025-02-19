@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	
+
 	go_ora "github.com/sijms/go-ora/v2"
 )
 
@@ -20,7 +20,7 @@ WHERE
     c.owner = :1 
     AND c.data_type = 'CLOB'
     AND t.num_rows > 0
-    AND c.table_name NOT IN ('FEATURE', 'FEATUREPROP', 'CHADO_LOGS', 'CHADOPROP')
+    AND c.table_name NOT IN ('CHADO_LOGS', 'CHADOPROP')
     AND NOT EXISTS (
         SELECT 1 
         FROM all_mviews mv 
@@ -48,7 +48,10 @@ func (orc *OracleApp) setupDatabaseConnection() (*sql.DB, error) {
 	return dbh, nil
 }
 
-func (orc *OracleApp) queryClobTables(dbh *sql.DB, user string) (*sql.Rows, error) {
+func (orc *OracleApp) queryClobTables(
+	dbh *sql.DB,
+	user string,
+) (*sql.Rows, error) {
 	rows, err := dbh.Query(clobQuery, user)
 	if err != nil {
 		return nil, fmt.Errorf("error in running the clob query %s", err)
