@@ -169,6 +169,7 @@ func (orc *OracleApp) listTablesAction() error {
 	}
 	
 	fmt.Printf("Successfully exported table names to %s\n", outputFile)
+	getLogger().Printf("Successfully exported table names to %s", outputFile)
 	return nil
 }
 
