@@ -35,6 +35,14 @@ func main() {
 					return orc.clobStatsAction()
 				},
 			},
+			{
+				Name:  "list-tables",
+				Usage: "Export all user-owned table names to a file",
+				Action: func(cltx *cli.Context) error {
+					orc := &OracleApp{cltx: cltx}
+					return orc.listTablesAction()
+				},
+			},
 		},
 		Flags: []cli.Flag{
 			&cli.StringFlag{
@@ -72,6 +80,12 @@ func main() {
 				Aliases: []string{"o"},
 				Usage:   "Output directory for CSV files",
 				Value:   ".",
+			},
+			&cli.StringFlag{
+				Name:    "output",
+				Aliases: []string{"f"},
+				Usage:   "Output file path for table list",
+				Value:   "tables.txt",
 			},
 		},
 		Action: func(c *cli.Context) error {
@@ -122,6 +136,40 @@ func getLogger() *log.Logger {
 		"[chado-clob] ",
 		log.LstdFlags|log.Lmsgprefix,
 	)
+}
+
+func (orc *OracleApp) listTablesAction() error {
+	dbh, err := orc.setupDatabaseConnection()
+	if err != nil {
+		return cli.Exit(fmt.Sprintf("Failed to connect: %v", err), 1)
+	}
+	defer dbh.Close()
+
+	rows, err := dbh.Query(tableListQuery, orc.cltx.String("user"))
+	if err != nil {
+		return cli.Exit(fmt.Sprintf("Query failed: %v", err), 1)
+	}
+	defer rows.Close()
+
+	outputFile := orc.cltx.String("output")
+	f, err := os.Create(outputFile)
+	if err != nil {
+		return cli.Exit(fmt.Sprintf("Failed to create output file: %v", err), 1)
+	}
+	defer f.Close()
+
+	var tableName string
+	for rows.Next() {
+		if err := rows.Scan(&tableName); err != nil {
+			return cli.Exit(fmt.Sprintf("Error scanning row: %v", err), 1)
+		}
+		if _, err := fmt.Fprintln(f, tableName); err != nil {
+			return cli.Exit(fmt.Sprintf("Error writing to file: %v", err), 1)
+		}
+	}
+	
+	fmt.Printf("Successfully exported table names to %s\n", outputFile)
+	return nil
 }
 
 func (orc *OracleApp) pingAction() error {

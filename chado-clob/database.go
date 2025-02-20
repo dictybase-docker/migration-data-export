@@ -7,6 +7,14 @@ import (
 	go_ora "github.com/sijms/go-ora/v2"
 )
 
+const tableListQuery = `SELECT table_name 
+FROM all_tables 
+WHERE owner = :1 
+AND temporary = 'N'
+AND table_name NOT IN (
+    SELECT mview_name FROM all_mviews WHERE owner = :1
+)`
+
 const clobQuery = `SELECT 
     c.table_name,
     c.column_name
