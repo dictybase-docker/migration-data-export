@@ -47,6 +47,10 @@ func GetStructForTable(tableName string) (interface{}, bool) {
 		return &FeatureRelationship{}, true
 	case "phenotype":
 		return &Phenotype{}, true
+	case "paragraph":
+		return &Paragraph{}, true
+	case "plasmid":
+		return &Plasmid{}, true
 	default:
 		return nil, false
 	}
@@ -156,4 +160,14 @@ type MvGeneDescription struct {
 type Phenotype struct {
 	PhenotypeID int            `db:"PHENOTYPE_ID"`
 	Value       sql.NullString `db:"VALUE"`
+}
+
+type Paragraph struct {
+	ParagraphID   int            `db:"PARAGRAPH_NO"`
+	ParagraphText sql.NullString `db:"PARAGRAPH_TEXT"`
+}
+
+type Plasmid struct {
+	PlasmidID int            `db:"ID"`
+	Sequence  sql.NullString `db:"SEQUENCE"`
 }
