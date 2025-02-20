@@ -163,9 +163,21 @@ func buildNotNullCondition(col string) string {
 
 func generateSelectStatement(table string, columns []string) string {
 	conditions := Map(columns, buildNotNullCondition)
+	lowerTable := strings.ToLower(table)
+
+	var idColumn string
+	switch lowerTable {
+	case "paragraph":
+		idColumn = "PARAGRAPH_NO"
+	case "plasmid":
+		idColumn = "ID"
+	default:
+		idColumn = fmt.Sprintf("%s_ID", table) // Explicit default assignment
+	}
+
 	return fmt.Sprintf(
-		"SELECT %s_ID,%s FROM %s WHERE %s",
-		table,
+		"SELECT %s,%s FROM %s WHERE %s",
+		idColumn,
 		strings.Join(columns, ","),
 		table,
 		strings.Join(conditions, " OR "),
