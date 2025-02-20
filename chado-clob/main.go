@@ -167,8 +167,14 @@ func (orc *OracleApp) listTablesAction() error {
 			return cli.Exit(fmt.Sprintf("Error writing to file: %v", err), 1)
 		}
 	}
-	
-	fmt.Printf("Successfully exported table names to %s\n", outputFile)
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf(
+			"error in scanning names for table %s %w",
+			tableName,
+			err,
+		)
+	}
+
 	getLogger().Printf("Successfully exported table names to %s", outputFile)
 	return nil
 }
